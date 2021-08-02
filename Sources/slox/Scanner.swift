@@ -71,7 +71,14 @@ final class Scanner {
         case "\"": string()
 
         default:
-            Lox.error(line: line, message: "Unexpected character.")
+            if isDigit(charToEvaluate) {
+                number()
+            // Assume any lexeme starting with a letter or underscore is an identifier
+            } else if isAlpha(charToEvaluate) {
+                identifier()
+            } else {
+                Lox.error(line: line, message: "Unexpected character.")
+            }
         }
     }
 
@@ -115,7 +122,72 @@ final class Scanner {
         advance()
 
         // Trim the surrounding quotes
-        let value = source[start..<current]
+        let value = source[source.index(after: start)..<source.index(before: current)]
         addToken(type: .STRING, literal: value)
     }
+
+    private func isDigit(_ char: Character) -> Bool {
+        char >= "0" && char <= "9"
+    }
+
+    private func number() {
+        while isDigit(peek()) { advance() }
+
+        // Look for a fractional part
+        if peek() == "." && isDigit(peekNext()) {
+            // Consume the "."
+            advance()
+
+            while isDigit(peek()) { advance() }
+        }
+
+        let str = source[start..<current]
+        addToken(type: .NUMBER, literal: str)
+    }
+
+    private func peekNext() -> Character {
+        if isAtEnd || source.index(after: current) == source.endIndex {
+            return "\0"
+        }
+        return source[source.index(after: current)]
+    }
+
+    private func isAlpha(_ char: Character) -> Bool {
+        return (char >= "a" && char <= "z") ||
+               (char >= "A" && char <= "Z") ||
+                char == "_"
+    }
+
+    private func identifier() {
+        while isAlphaNumeric(peek()) { advance() }
+
+        let text = source[start..<current]
+        addToken(type: Scanner.keywords[text] ?? .IDENTIFIER)
+    }
+
+    private func isAlphaNumeric(_ char: Character) -> Bool {
+        isDigit(char) || isAlpha(char)
+    }
+}
+
+private extension Scanner {
+
+    static let keywords: [String.SubSequence: TokenType] = [
+           "and": .AND,
+         "class": .CLASS,
+          "else": .ELSE,
+         "false": .FALSE,
+           "for": .FOR,
+           "fun": .FUN,
+            "if": .IF,
+           "nil": .NIL,
+            "or": .OR,
+         "print": .PRINT,
+        "return": .RETURN,
+         "super": .SUPER,
+          "this": .THIS,
+          "true": .TRUE,
+           "var": .VAR,
+         "while": .WHILE
+    ]
 }

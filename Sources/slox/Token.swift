@@ -15,6 +15,9 @@ struct Token: CustomStringConvertible {
     let line: Int
 
     var description: String {
-        "\(type) \(lexeme) \(String(describing: literal))"
+        if let literal = literal {
+            return "\(type) \(lexeme) \(literal)"
+        }
+        return "\(type) \(lexeme)"
     }
 }
