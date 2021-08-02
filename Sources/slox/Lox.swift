@@ -42,17 +42,22 @@ private extension Lox {
     }
 
     static func run(_ str: String) throws {
+        let scanner = Scanner(source: str)
+        let tokens = scanner.scanTokens()
 
+        for token in tokens {
+            print(token)
+        }
     }
 }
 
-private extension Lox {
+internal extension Lox {
 
     static func error(line: Int, message: String) {
         report(line: line, location: "", message: message)
     }
 
-    static func report(line: Int, location: String, message: String) {
+    private static func report(line: Int, location: String, message: String) {
         // TODO: send this to STDERR
         print("[line \(line)] Error \(location): \(message)")
         hadError = true

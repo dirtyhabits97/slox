@@ -11,10 +11,10 @@ struct Token: CustomStringConvertible {
 
     let type: TokenType
     let lexeme: String
-    let literal: AnyObject
+    let literal: AnyObject?
     let line: Int
 
     var description: String {
-        "\(type) \(lexeme) \(literal)"
+        "\(type) \(lexeme) \(String(describing: literal))"
     }
 }
