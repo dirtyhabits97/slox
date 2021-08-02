@@ -16,7 +16,7 @@ final class Scanner {
     private var current: String.Index
     private var line = 1
 
-    private var isAtEnd: Bool { current != source.endIndex }
+    private var isAtEnd: Bool { current >= source.endIndex }
 
     init(source: String) {
         self.source = source
@@ -65,7 +65,7 @@ final class Scanner {
     }
 
     private func addToken(type: TokenType, literal: AnyObject? = nil) {
-        let text = String(source[start...current])
+        let text = String(source[start..<current])
         tokens.append(Token(type: type, lexeme: text, literal: literal, line: line))
     }
 
