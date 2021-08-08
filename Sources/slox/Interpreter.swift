@@ -9,7 +9,18 @@ import Foundation
 
 struct Interpreter {
 
-    func evaluate(_ expression: Expr) throws -> RuntimeValue {
+    func interpret(_ expression: Expr) {
+        do {
+            let value = try evaluate(expression)
+            print(value)
+        } catch let error as RuntimeError {
+            Lox.runtimeError(error)
+        } catch {
+            print("Unhandled error: \(error.localizedDescription).\n\(error)")
+        }
+    }
+
+    private func evaluate(_ expression: Expr) throws -> RuntimeValue {
         switch expression {
         case .literal(let lit):
             return evaluateLiteral(lit)
@@ -163,8 +174,23 @@ enum RuntimeValue: Equatable {
     }
 }
 
-private extension Interpreter {
+extension RuntimeValue: CustomStringConvertible {
 
+    var description: String {
+        switch self {
+        case .none:
+            return "nil"
+        case .number(let num):
+            return String(num)
+        case .string(let str):
+            return str
+        case .bool(let bool):
+            return String(bool)
+        }
+    }
+}
+
+private extension Interpreter {
 
     func checkNumberOperand(_ operation: Token, operand: RuntimeValue) throws {
         guard case .number(_) = operand else {

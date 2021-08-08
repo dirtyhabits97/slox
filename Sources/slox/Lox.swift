@@ -9,6 +9,8 @@ import Foundation
 
 public enum Lox {
 
+    private static let interpreter = Interpreter()
+
     public static func main(args: [String]) throws {
         if args.count > 1 {
             print("Usage: slox [script]")
@@ -23,13 +25,12 @@ public enum Lox {
 
 private extension Lox {
 
-    static var hadError = false
-
     static func runFile(_ file: String) throws {
         let contents = try String(contentsOfFile: file)
         try run(contents)
 
         if hadError { exit(65) }
+        if hadRuntimeError { exit(70) }
     }
 
     static func runPrompt() throws {
@@ -38,6 +39,7 @@ private extension Lox {
 
             guard let line = readLine() else { continue }
             try run(line)
+            hadError = false
         }
     }
 
@@ -52,10 +54,14 @@ private extension Lox {
         if hadError { return }
 
         ASTPrinter(strategy: .infix).print(expression!)
+        interpreter.interpret(expression!)
     }
 }
 
 internal extension Lox {
+
+    static var hadError = false
+    static var hadRuntimeError = false
 
     static func error(line: Int, message: String) {
         report(line: line, location: "", message: message)
@@ -74,5 +80,11 @@ internal extension Lox {
         // TODO: send this to STDERR
         print("[line \(line)] Error \(location): \(message)")
         hadError = true
+    }
+
+    static func runtimeError(_ error: RuntimeError) {
+        // TODO: send this to STDERR
+        print("[line \(error.token.line)] \(error.message)")
+        hadRuntimeError = true
     }
 }
