@@ -22,23 +22,24 @@ public enum Lox {
     }
 
     private static func test() {
+        let other = Expr.binary(lhs: .unary(operator: .init(type: .MINUS, lexeme: "-", literal: nil, line: 1), rhs: .literal(.number(123))), operator: .init(type: .STAR, lexeme: "*", literal: nil, line: 1), rhs: .grouping(.literal(.number(45.67))))
         let expression = Expr.binary(
             lhs: .binary(
-                lhs: .literal(1),
+                lhs: .literal(.number(1)),
                 operator: .init(type: .PLUS, lexeme: "+", literal: nil, line: 1),
-                rhs: .literal(2)
+                rhs: .literal(.number(2))
             ),
             operator: .init(type: .STAR, lexeme: "*", literal: nil, line: 1),
             rhs: .binary(
-                lhs: .literal(4),
+                lhs: .literal(.number(4)),
                 operator: .init(type: .MINUS, lexeme: "-", literal: nil, line: 1),
-                rhs: .literal(3)
+                rhs: .literal(.number(3))
             )
         )
 
-        ASTPrinter(strategy: .prefix).print(expression)
-        ASTPrinter(strategy: .infix).print(expression)
-        ASTPrinter(strategy: .postfix).print(expression)
+        ASTPrinter(strategy: .prefix).print(other)
+        ASTPrinter(strategy: .infix).print(other)
+        ASTPrinter(strategy: .postfix).print(other)
     }
 }
 

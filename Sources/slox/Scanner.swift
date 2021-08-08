@@ -88,7 +88,7 @@ final class Scanner {
         return source[current]
     }
 
-    private func addToken(type: TokenType, literal: Any? = nil) {
+    private func addToken(type: TokenType, literal: Literal? = nil) {
         let text = String(source[start..<current])
         tokens.append(Token(type: type, lexeme: text, literal: literal, line: line))
     }
@@ -123,7 +123,7 @@ final class Scanner {
 
         // Trim the surrounding quotes
         let value = source[source.index(after: start)..<source.index(before: current)]
-        addToken(type: .STRING, literal: value)
+        addToken(type: .STRING, literal: .init(value))
     }
 
     private func isDigit(_ char: Character) -> Bool {
@@ -142,7 +142,7 @@ final class Scanner {
         }
 
         let str = source[start..<current]
-        addToken(type: .NUMBER, literal: str)
+        addToken(type: .NUMBER, literal: .number(from: str))
     }
 
     private func peekNext() -> Character {

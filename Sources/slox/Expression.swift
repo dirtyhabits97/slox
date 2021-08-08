@@ -11,6 +11,6 @@ indirect enum Expr {
 
     case binary(lhs: Expr, operator: Token, rhs: Expr)
     case grouping(Expr)
-    case literal(Any?)
+    case literal(Literal?)
     case unary(operator: Token, rhs: Expr)
 }
