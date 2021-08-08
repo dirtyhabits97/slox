@@ -27,7 +27,6 @@ final class Parser {
 
 private extension Parser {
 
-
     func expression() throws -> Expr {
         try equality()
     }
@@ -91,11 +90,15 @@ private extension Parser {
     }
 
     func primary() throws -> Expr {
-        if match(.FALSE) { return .literal(false) }
-        if match(.TRUE) { return .literal(true) }
+        if match(.FALSE) { return .literal(bool: false) }
+        if match(.TRUE) { return .literal(bool: true) }
         if match(.NIL) { return .literal(nil) }
 
         if match(.NUMBER, .STRING) {
+            // when a match is found, the idx advances by one
+            // BEFORE returning
+            // so we get the previous one, because that's the token
+            // we just validated
             return .literal(previous().literal)
         }
 
