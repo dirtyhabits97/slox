@@ -9,16 +9,16 @@ import Foundation
 
 struct Interpreter {
 
-    func evaluate(_ expression: Expr) -> RuntimeValue {
+    func evaluate(_ expression: Expr) throws -> RuntimeValue {
         switch expression {
         case .literal(let lit):
             return evaluateLiteral(lit)
         case .grouping(let group):
-            return evaluate(group)
+            return try evaluate(group)
         case .unary(operator: let op, rhs: let rhs):
-            return evaluateUnary(op, expr: rhs)
+            return try evaluateUnary(op, expr: rhs)
         case .binary(lhs: let lhs, operator: let op, rhs: let rhs):
-            return evaluateBinary(lhs, operation: op, rhs)
+            return try evaluateBinary(lhs, operation: op, rhs)
         }
     }
 }
@@ -38,16 +38,15 @@ private extension Interpreter {
         }
     }
 
-    func evaluateUnary(_ operation: Token, expr: Expr) -> RuntimeValue {
-        let value = evaluate(expr)
+    func evaluateUnary(_ operation: Token, expr: Expr) throws -> RuntimeValue {
+        let value = try evaluate(expr)
 
         switch operation.type {
         case .BANG:
             return .bool(!value.isTruthy)
         case .MINUS:
             guard let number = value.number else {
-                // TODO: handle this error
-                return .none
+                throw RuntimeError(token: operation, message: "Operand must be a number.")
             }
             return .number(-number)
         // TODO: finish implementing this
@@ -56,20 +55,24 @@ private extension Interpreter {
         }
     }
 
-    func evaluateBinary(_ lhs: Expr, operation: Token, _ rhs: Expr) -> RuntimeValue {
-        let lhs = evaluate(lhs)
-        let rhs = evaluate(rhs)
+    func evaluateBinary(_ lhs: Expr, operation: Token, _ rhs: Expr) throws -> RuntimeValue {
+        let lhs = try evaluate(lhs)
+        let rhs = try evaluate(rhs)
 
         switch operation.type {
 
         // MARK: Comparison operations
         case .GREATER:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateComparison(lhs, operation: >, rhs)
         case .GREATER_EQUAL:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateComparison(lhs, operation: >=, rhs)
         case .LESS:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateComparison(lhs, operation: <, rhs)
         case .LESS_EQUAL:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateComparison(lhs, operation: <=, rhs)
 
         // MARK: Equality operations
@@ -80,10 +83,13 @@ private extension Interpreter {
 
         // MARK: Arithmetic operations
         case .MINUS:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateMath(lhs, operation: -, rhs)
         case .SLASH:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateMath(lhs, operation: /, rhs)
         case .STAR:
+            try checkNumberOperands(operation, lhs, rhs)
             return evaluateMath(lhs, operation: *, rhs)
         case .PLUS:
             switch (lhs, rhs) {
@@ -92,8 +98,10 @@ private extension Interpreter {
             case (.string(let l), .string(let r)):
                 return .string(l + r)
             default:
-                // TODO: handle this error
-                return .none
+                throw RuntimeError(
+                    token: operation,
+                    message: "Operands must be two numbers or two strings."
+                )
             }
 
         default:
@@ -107,7 +115,6 @@ private extension Interpreter {
         _ rhs: RuntimeValue
     ) -> RuntimeValue {
         guard let l = lhs.number, let r = rhs.number else {
-            // TODO: Handle error
             return .none
         }
         return .number(operation(l, r))
@@ -119,7 +126,6 @@ private extension Interpreter {
         _ rhs: RuntimeValue
     ) -> RuntimeValue {
         guard let l = lhs.number, let r = rhs.number else {
-            // TODO: Handle error
             return .none
         }
         return .bool(operation(l, r))
@@ -155,4 +161,33 @@ enum RuntimeValue: Equatable {
             return true
         }
     }
+}
+
+private extension Interpreter {
+
+
+    func checkNumberOperand(_ operation: Token, operand: RuntimeValue) throws {
+        guard case .number(_) = operand else {
+            throw RuntimeError(token: operation, message: "Operand must be a number.")
+        }
+    }
+
+    func checkNumberOperands(
+        _ operation: Token,
+        _ lhs: RuntimeValue,
+        _ rhs: RuntimeValue
+    ) throws {
+        switch (lhs, rhs) {
+        case (.number, .number):
+            break
+        default:
+            throw RuntimeError(token: operation, message: "Operands must be numbers.")
+        }
+    }
+}
+
+struct RuntimeError: Error {
+
+    let token: Token
+    let message: String
 }
