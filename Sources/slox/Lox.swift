@@ -10,6 +10,7 @@ import Foundation
 public enum Lox {
 
     public static func main(args: [String]) throws {
+        test()
         if args.count > 1 {
             print("Usage: slox [script]")
             exit(64)
@@ -18,6 +19,26 @@ public enum Lox {
         } else {
             try runPrompt()
         }
+    }
+
+    private static func test() {
+        let expression = Expr.binary(
+            lhs: .binary(
+                lhs: .literal(1),
+                operator: .init(type: .PLUS, lexeme: "+", literal: nil, line: 1),
+                rhs: .literal(2)
+            ),
+            operator: .init(type: .STAR, lexeme: "*", literal: nil, line: 1),
+            rhs: .binary(
+                lhs: .literal(4),
+                operator: .init(type: .MINUS, lexeme: "-", literal: nil, line: 1),
+                rhs: .literal(3)
+            )
+        )
+
+        ASTPrinter(strategy: .prefix).print(expression)
+        ASTPrinter(strategy: .infix).print(expression)
+        ASTPrinter(strategy: .postfix).print(expression)
     }
 }
 
