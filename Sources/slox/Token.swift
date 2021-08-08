@@ -44,7 +44,7 @@ extension Literal: CustomStringConvertible {
     var description: String {
         switch self {
         case .string(let str):
-            return str
+            return "\"\(str)\""
         case .number(let num):
             return String(num)
         case .bool(let bool):
