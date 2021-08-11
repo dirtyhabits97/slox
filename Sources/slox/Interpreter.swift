@@ -108,6 +108,16 @@ private extension Interpreter {
                 return .number(l + r)
             case (.string(let l), .string(let r)):
                 return .string(l + r)
+
+            // Chapter 7, assignment 2:
+            // Many languages define + such that if either operand is
+            // a string, the other is converted to a string and the
+            // results are then concatenated
+            case (.string(let l), .number(let r)):
+                return .string(l + String(r))
+            case (.number(let l), .string(let r)):
+                return .string(String(l) + r)
+
             default:
                 throw RuntimeError(
                     token: operation,
