@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct Interpreter {
+final class Interpreter {
 
-    private let environment = Environment()
+    private var environment = Environment()
 
     func interpret(_ statements: [Statement]) {
         do {
@@ -37,7 +37,30 @@ private extension Interpreter {
             return value
         case .variable(name: let name, initializer: let initializer):
             return try executeVarStatement(name, initializer)
+        case .block(let statements):
+            return try executeBlockStatement(
+                statements,
+                env: Environment(enclosing: environment)
+            )
         }
+    }
+
+    func executeBlockStatement(
+        _ statements: [Statement],
+        env environment: Environment
+    ) throws -> RuntimeValue {
+        let previous = self.environment
+        defer { self.environment = previous }
+        
+        do {
+            self.environment = environment
+
+            for stmt in statements {
+                try execute(stmt)
+            }
+        }
+        // TODO: this method shouldn't return
+        return .none
     }
 
     func executeVarStatement(_ name: Token, _ initializer: Expr) throws -> RuntimeValue {
@@ -63,7 +86,15 @@ private extension Interpreter {
             return .none
         case .variable(let name):
             return try environment.get(name)
+        case .assign(name: let name, value: let value):
+            return try evaluateAssignment(name, value)
         }
+    }
+
+    func evaluateAssignment(_ name: Token, _ value: Expr) throws -> RuntimeValue {
+        let value = try evaluate(value)
+        try environment.assign(value, to: name)
+        return value
     }
 
     func evaluateLiteral(_ literal: Literal?) -> RuntimeValue {

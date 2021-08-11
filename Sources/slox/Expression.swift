@@ -9,6 +9,7 @@ import Foundation
 
 enum Expr {
 
+    indirect case assign(name: Token, value: Expr)
     indirect case binary(lhs: Expr, operator: Token, rhs: Expr)
     indirect case grouping(Expr)
     case literal(Literal?)

@@ -20,9 +20,10 @@ struct ASTPrinter {
     }
 
     func print(_ statements: [Statement]) {
-        for stmt in statements {
-            Swift.print(description(for: stmt.expr))
-        }
+        // TODO: restore this
+//        for stmt in statements {
+//            Swift.print(description(for: stmt.expr))
+//        }
     }
 
     private func description(for expression: Expr) -> String {
@@ -49,6 +50,8 @@ struct ASTPrinter {
             return name.description
         case .empty:
             return "nil"
+        case .assign(name: let name, value: let value):
+            return "TODO: do this assignment"
         }
     }
 

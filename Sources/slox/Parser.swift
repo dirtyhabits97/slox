@@ -49,7 +49,21 @@ private extension Parser {
         if match(.PRINT) {
             return try printStatement()
         }
+        if match(.LEFT_BRACE) {
+            return .block(try blockStatement())
+        }
         return try expressionStatement()
+    }
+
+    func blockStatement() throws -> [Statement] {
+        var statements: [Statement] = []
+
+        while (!check(.RIGHT_BRACE) && !isAtEnd) {
+            statements.append(try declaration())
+        }
+
+        try consume(.RIGHT_BRACE, message: "Expect '}' after block")
+        return statements
     }
 
     func printStatement() throws -> Statement {
@@ -82,7 +96,24 @@ private extension Parser {
 private extension Parser {
 
     func expression() throws -> Expr {
-        try equality()
+        try assignment()
+    }
+
+    func assignment() throws -> Expr {
+        let expression = try equality()
+
+        if match(.EQUAL) {
+            let equals = previous()
+            let value = try assignment()
+
+            if case .variable(let name) = expression {
+                return .assign(name: name, value: value)
+            }
+
+            throw error(token: equals, message: "Invalid assignment target.")
+        }
+
+        return expression
     }
 
     func equality() throws -> Expr {
