@@ -7,12 +7,14 @@
 
 import Foundation
 
-indirect enum Expr {
+enum Expr {
 
-    case binary(lhs: Expr, operator: Token, rhs: Expr)
-    case grouping(Expr)
+    indirect case binary(lhs: Expr, operator: Token, rhs: Expr)
+    indirect case grouping(Expr)
     case literal(Literal?)
-    case unary(operator: Token, rhs: Expr)
+    indirect case unary(operator: Token, rhs: Expr)
+    case variable(Token)
+    case empty
 
     static func literal(bool: Bool?) -> Expr {
         if let bool = bool {

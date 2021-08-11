@@ -21,7 +21,7 @@ final class Parser {
         
         do {
             while !isAtEnd {
-                statements.append(try statement())
+                statements.append(try declaration())
             }
         } catch {
             // TODO: handle error
@@ -32,6 +32,18 @@ final class Parser {
 }
 
 private extension Parser {
+
+    func declaration() throws -> Statement {
+        do {
+            if match(.VAR) {
+                return try varDeclaration()
+            }
+            return try statement()
+        } catch {
+            syncronize()
+            throw error
+        }
+    }
 
     func statement() throws -> Statement {
         if match(.PRINT) {
@@ -50,6 +62,20 @@ private extension Parser {
         let expr = try expression()
         try consume(.SEMICOLON, message: "Expect ';' after expression.")
         return .expression(expr)
+    }
+
+    func varDeclaration() throws -> Statement {
+        let name = try consume(.IDENTIFIER, message: "Expect variable name.")
+
+        let initializer: Expr
+        if match(.EQUAL) {
+            initializer = try expression()
+        } else {
+            initializer = .empty
+        }
+
+        try consume(.SEMICOLON, message: "Expect ';' after variable declaration.")
+        return .variable(name: name, initializer: initializer)
     }
 }
 
@@ -128,6 +154,10 @@ private extension Parser {
             // so we get the previous one, because that's the token
             // we just validated
             return .literal(previous().literal)
+        }
+
+        if match(.IDENTIFIER) {
+            return .variable(previous())
         }
 
         if match(.LEFT_PAREN) {

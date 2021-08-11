@@ -45,6 +45,10 @@ struct ASTPrinter {
             return "nil"
         case .unary(operator: let op, rhs: let rhs):
             return prefix(op.lexeme, expressions: rhs)
+        case .variable(let name):
+            return name.description
+        case .empty:
+            return "nil"
         }
     }
 

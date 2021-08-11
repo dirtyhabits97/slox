@@ -9,6 +9,8 @@ import Foundation
 
 struct Interpreter {
 
+    private let environment = Environment()
+
     func interpret(_ statements: [Statement]) {
         do {
             for stmt in statements {
@@ -33,7 +35,15 @@ private extension Interpreter {
             let value = try evaluate(expr)
             print(value)
             return value
+        case .variable(name: let name, initializer: let initializer):
+            return try executeVarStatement(name, initializer)
         }
+    }
+
+    func executeVarStatement(_ name: Token, _ initializer: Expr) throws -> RuntimeValue {
+        let value = try evaluate(initializer)
+        environment.define(value, for: name.lexeme)
+        return value
     }
 }
 
@@ -49,6 +59,10 @@ private extension Interpreter {
             return try evaluateUnary(op, expr: rhs)
         case .binary(lhs: let lhs, operator: let op, rhs: let rhs):
             return try evaluateBinary(lhs, operation: op, rhs)
+        case .empty:
+            return .none
+        case .variable(let name):
+            return try environment.get(name)
         }
     }
 
@@ -209,7 +223,7 @@ extension RuntimeValue: CustomStringConvertible {
         case .number(let num):
             return String(num)
         case .string(let str):
-            return str
+            return "\"\(str)\""
         case .bool(let bool):
             return String(bool)
         }
