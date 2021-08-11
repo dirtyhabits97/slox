@@ -18,13 +18,13 @@ final class Parser {
 
     func parse() -> [Statement] {
         var statements: [Statement] = []
-
-        while !isAtEnd {
-            do {
+        
+        do {
+            while !isAtEnd {
                 statements.append(try statement())
-            } catch {
-                // TODO: handle error
             }
+        } catch {
+            // TODO: handle error
         }
 
         return statements
@@ -34,8 +34,10 @@ final class Parser {
 private extension Parser {
 
     func statement() throws -> Statement {
-        match(.PRINT) ? try printStatement()
-                      : try expressionStatement()
+        if match(.PRINT) {
+            return try printStatement()
+        }
+        return try expressionStatement()
     }
 
     func printStatement() throws -> Statement {
@@ -139,7 +141,7 @@ private extension Parser {
 
     @discardableResult
     func consume(_ type: TokenType, message: String) throws -> Token {
-        if check(type) { advance() }
+        if check(type) { return advance() }
 
         throw error(token: peek(), message: message)
     }

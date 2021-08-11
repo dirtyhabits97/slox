@@ -9,18 +9,37 @@ import Foundation
 
 struct Interpreter {
 
-    func interpret(_ expression: Expr) {
+    func interpret(_ statements: [Statement]) {
         do {
-            let value = try evaluate(expression)
-            print(value)
+            for stmt in statements {
+                try execute(stmt)
+            }
         } catch let error as RuntimeError {
             Lox.runtimeError(error)
         } catch {
             print("Unhandled error: \(error.localizedDescription).\n\(error)")
         }
     }
+}
 
-    private func evaluate(_ expression: Expr) throws -> RuntimeValue {
+private extension Interpreter {
+
+    @discardableResult
+    func execute(_ statement: Statement) throws -> RuntimeValue {
+        switch statement {
+        case .expression(let expr):
+            return try evaluate(expr)
+        case .print(let expr):
+            let value = try evaluate(expr)
+            print(value)
+            return value
+        }
+    }
+}
+
+private extension Interpreter {
+
+    func evaluate(_ expression: Expr) throws -> RuntimeValue {
         switch expression {
         case .literal(let lit):
             return evaluateLiteral(lit)
@@ -32,9 +51,6 @@ struct Interpreter {
             return try evaluateBinary(lhs, operation: op, rhs)
         }
     }
-}
-
-private extension Interpreter {
 
     func evaluateLiteral(_ literal: Literal?) -> RuntimeValue {
         guard let literal = literal else { return .none }

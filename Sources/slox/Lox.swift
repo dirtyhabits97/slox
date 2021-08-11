@@ -48,13 +48,13 @@ private extension Lox {
         let tokens = scanner.scanTokens()
 
         let parser = Parser(tokens: tokens)
-        let expression = parser.parse()
+        let statements = parser.parse()
 
         // Stop if there was a syntax error
         if hadError { return }
 
-        ASTPrinter(strategy: .infix).print(expression!)
-        interpreter.interpret(expression!)
+//        ASTPrinter(strategy: .infix).print(statements)
+        interpreter.interpret(statements)
     }
 }
 

@@ -19,6 +19,12 @@ struct ASTPrinter {
         Swift.print(description(for: expression))
     }
 
+    func print(_ statements: [Statement]) {
+        for stmt in statements {
+            Swift.print(description(for: stmt.expr))
+        }
+    }
+
     private func description(for expression: Expr) -> String {
         switch expression {
         case .binary(lhs: let lhs, operator: let op, rhs: let rhs):
