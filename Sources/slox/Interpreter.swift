@@ -44,7 +44,19 @@ private extension Interpreter {
             )
         case .if(condition: let condition, then: let then, else: let `else`):
             return try executeIfStatement(condition, then, `else`)
+        case .while(condition: let condition, body: let body):
+            return try executeWhileStatement(condition, body)
         }
+    }
+
+    func executeWhileStatement(
+        _ condition: Expr,
+        _ body: Statement
+    ) throws -> RuntimeValue {
+        while try evaluate(condition).isTruthy {
+            try execute(body)
+        }
+        return .none
     }
 
     func executeIfStatement(

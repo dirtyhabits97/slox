@@ -52,6 +52,9 @@ private extension Parser {
         if match(.PRINT) {
             return try printStatement()
         }
+        if match(.WHILE) {
+            return try whileStatement()
+        }
         if match(.LEFT_BRACE) {
             return .block(try blockStatement())
         }
@@ -72,6 +75,20 @@ private extension Parser {
         return .if(condition: condition, then: then, else: nil)
     }
 
+    func printStatement() throws -> Statement {
+        let val = try expression()
+        try consume(.SEMICOLON, message: "Expect ';' after value.")
+        return .print(val)
+    }
+
+    func whileStatement() throws -> Statement {
+        try consume(.LEFT_PAREN, message: "Expect '(' after 'while'.")
+        let condition = try expression()
+        try consume(.RIGHT_PAREN, message: "Expect ')' after condition.")
+        let body = try statement()
+        return .while(condition: condition, body: body)
+    }
+
     func blockStatement() throws -> [Statement] {
         var statements: [Statement] = []
 
@@ -81,12 +98,6 @@ private extension Parser {
 
         try consume(.RIGHT_BRACE, message: "Expect '}' after block")
         return statements
-    }
-
-    func printStatement() throws -> Statement {
-        let val = try expression()
-        try consume(.SEMICOLON, message: "Expect ';' after value.")
-        return .print(val)
     }
 
     func expressionStatement() throws -> Statement {
