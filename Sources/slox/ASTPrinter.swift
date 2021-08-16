@@ -78,6 +78,9 @@ extension ASTPrinter: StatementVisitor {
     }
 
     func visitVariableStatement(_ name: Token, _ initializer: Expression) -> String {
+        if case .empty = initializer {
+            return parenthesize("var", elements: name)
+        }
         return parenthesize("var", elements: name, "=", initializer)
     }
 
@@ -116,7 +119,7 @@ private extension ASTPrinter {
         case .empty:
             return "nil"
         case .assign(name: let name, value: let value):
-            return parenthesize(name.lexeme, elements: value)
+            return parenthesize(name.lexeme, elements: "=", value)
         }
     }
 }

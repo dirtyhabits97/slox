@@ -53,7 +53,7 @@ private extension Lox {
         // Stop if there was a syntax error
         if hadError { return }
 
-//        ASTPrinter(strategy: .infix).print(statements)
+        ASTPrinter(strategy: .infix).print(statements)
         interpreter.interpret(statements)
     }
 }
