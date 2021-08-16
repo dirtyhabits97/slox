@@ -50,8 +50,10 @@ struct ASTPrinter {
             return name.description
         case .empty:
             return "nil"
-        case .assign(name: let name, value: let value):
+        case .assign:
             return "TODO: do this assignment"
+        case .logical:
+            return "TODO: do this logical condition"
         }
     }
 

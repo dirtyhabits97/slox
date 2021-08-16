@@ -13,6 +13,7 @@ enum Expr {
     indirect case binary(lhs: Expr, operator: Token, rhs: Expr)
     indirect case grouping(Expr)
     case literal(Literal?)
+    indirect case logical(lhs: Expr, operator: Token, rhs: Expr)
     indirect case unary(operator: Token, rhs: Expr)
     case variable(Token)
     case empty

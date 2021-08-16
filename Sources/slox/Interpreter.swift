@@ -42,7 +42,22 @@ private extension Interpreter {
                 statements,
                 env: Environment(enclosing: environment)
             )
+        case .if(condition: let condition, then: let then, else: let `else`):
+            return try executeIfStatement(condition, then, `else`)
         }
+    }
+
+    func executeIfStatement(
+        _ condition: Expr,
+        _ thenBranch: Statement,
+        _ elseBranch: Statement?
+    ) throws -> RuntimeValue {
+        if try evaluate(condition).isTruthy {
+            return try execute(thenBranch)
+        } else if let elseBranch = elseBranch {
+            return try execute(elseBranch)
+        }
+        return .none
     }
 
     func executeBlockStatement(
@@ -88,7 +103,27 @@ private extension Interpreter {
             return try environment.get(name)
         case .assign(name: let name, value: let value):
             return try evaluateAssignment(name, value)
+        case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
+            return try evaluateLogic(lhs, op, rhs)
         }
+    }
+
+    func evaluateLogic(
+        _ lhs: Expr,
+        _ operation: Token,
+        _ rhs: Expr
+    ) throws -> RuntimeValue {
+        let lhs = try evaluate(lhs)
+
+        if operation.type == .OR {
+            // if the first OR expression is true, don't check the next one
+            if lhs.isTruthy { return lhs }
+        } else {
+            // if the first AND expression is false, don't check the next one
+            if !lhs.isTruthy { return lhs }
+        }
+
+        return try evaluate(rhs)
     }
 
     func evaluateAssignment(_ name: Token, _ value: Expr) throws -> RuntimeValue {

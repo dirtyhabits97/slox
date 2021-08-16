@@ -46,6 +46,9 @@ private extension Parser {
     }
 
     func statement() throws -> Statement {
+        if match(.IF) {
+            return try ifStatement()
+        }
         if match(.PRINT) {
             return try printStatement()
         }
@@ -53,6 +56,20 @@ private extension Parser {
             return .block(try blockStatement())
         }
         return try expressionStatement()
+    }
+
+    func ifStatement() throws -> Statement {
+        try consume(.LEFT_PAREN, message: "Expect '(' after 'if'.")
+        let condition = try expression()
+        try consume(.RIGHT_PAREN, message: "Expect ')' after 'if' condition.")
+
+        let then = try statement()
+
+        if match(.ELSE) {
+            return .if(condition: condition, then: then, else: try statement())
+        }
+
+        return .if(condition: condition, then: then, else: nil)
     }
 
     func blockStatement() throws -> [Statement] {
@@ -100,7 +117,7 @@ private extension Parser {
     }
 
     func assignment() throws -> Expr {
-        let expression = try equality()
+        let expression = try or()
 
         if match(.EQUAL) {
             let equals = previous()
@@ -123,6 +140,30 @@ private extension Parser {
             let op = previous()
             let rhs = try comparison()
             expression = .binary(lhs: expression, operator: op, rhs: rhs)
+        }
+
+        return expression
+    }
+
+    func or() throws -> Expr {
+        var expression = try and()
+
+        while match(.OR) {
+            let op = previous()
+            let rhs = try and()
+            expression = .logical(lhs: expression, operator: op, rhs: rhs)
+        }
+
+        return expression
+    }
+
+    func and() throws -> Expr {
+        var expression = try equality()
+
+        while match(.AND) {
+            let op = previous()
+            let rhs = try equality()
+            expression = .logical(lhs: expression, operator: op, rhs: rhs)
         }
 
         return expression
