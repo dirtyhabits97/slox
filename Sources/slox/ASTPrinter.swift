@@ -62,26 +62,26 @@ extension ASTPrinter: StatementVisitor {
         return str + " )"
     }
 
-    func visitExpressionStatement(_ expr: Expr) -> String {
+    func visitExpressionStatement(_ expr: Expression) -> String {
         return description(for: expr)
     }
 
-    func visitIfStatement(_ condition: Expr, _ thenBranch: Statement, _ elseBranch: Statement?) -> String {
+    func visitIfStatement(_ condition: Expression, _ thenBranch: Statement, _ elseBranch: Statement?) -> String {
         if let elseBranch = elseBranch {
             return parenthesize("if-else", elements: condition, thenBranch, elseBranch)
         }
         return parenthesize("if", elements: condition, thenBranch)
     }
 
-    func visitPrintStatement(_ expr: Expr) -> String {
+    func visitPrintStatement(_ expr: Expression) -> String {
         return parenthesize("print", elements: expr)
     }
 
-    func visitVariableStatement(_ name: Token, _ initializer: Expr) -> String {
+    func visitVariableStatement(_ name: Token, _ initializer: Expression) -> String {
         return parenthesize("var", elements: name, "=", initializer)
     }
 
-    func visitWhileStatement(_ condition: Expr, _ body: Statement) -> String {
+    func visitWhileStatement(_ condition: Expression, _ body: Statement) -> String {
         return parenthesize("while", elements: condition, body)
     }
 }
@@ -90,7 +90,7 @@ extension ASTPrinter: StatementVisitor {
 
 private extension ASTPrinter {
 
-    func description(for expression: Expr) -> String {
+    func description(for expression: Expression) -> String {
         switch expression {
         case .binary(lhs: let lhs, operator: let op, rhs: let rhs),
              .logical(let lhs, let op, let rhs):
@@ -140,7 +140,7 @@ private extension ASTPrinter {
         for element in elements {
             str.append(" ")
 
-            if let expr = element as? Expr {
+            if let expr = element as? Expression {
                 str.append(description(for: expr))
             } else if let stmt = element as? Statement {
                 str.append(description(for: stmt))

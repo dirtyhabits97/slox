@@ -10,11 +10,11 @@ import Foundation
 enum Statement {
 
     indirect case block([Statement])
-    case expression(Expr)
-    indirect case `if`(condition: Expr, then: Statement, else: Statement?)
-    case print(Expr)
-    case variable(name: Token, initializer: Expr)
-    indirect case `while`(condition: Expr, body: Statement)
+    case expression(Expression)
+    indirect case `if`(condition: Expression, then: Statement, else: Statement?)
+    case print(Expression)
+    case variable(name: Token, initializer: Expression)
+    indirect case `while`(condition: Expression, body: Statement)
 }
 
 protocol StatementVisitor {
@@ -22,9 +22,9 @@ protocol StatementVisitor {
     associatedtype ReturnValue
 
     func visitBlockStatement(_ statements: [Statement]) -> ReturnValue
-    func visitExpressionStatement(_ expr: Expr) -> ReturnValue
-    func visitIfStatement(_ condition: Expr, _ then: Statement, _ else: Statement?) -> ReturnValue
-    func visitPrintStatement(_ expr: Expr) -> ReturnValue
-    func visitVariableStatement(_ name: Token, _ initializer: Expr) -> ReturnValue
-    func visitWhileStatement(_ condition: Expr, _ body: Statement) -> ReturnValue
+    func visitExpressionStatement(_ expr: Expression) -> ReturnValue
+    func visitIfStatement(_ condition: Expression, _ then: Statement, _ else: Statement?) -> ReturnValue
+    func visitPrintStatement(_ expr: Expression) -> ReturnValue
+    func visitVariableStatement(_ name: Token, _ initializer: Expression) -> ReturnValue
+    func visitWhileStatement(_ condition: Expression, _ body: Statement) -> ReturnValue
 }

@@ -7,18 +7,18 @@
 
 import Foundation
 
-enum Expr {
+enum Expression {
 
-    indirect case assign(name: Token, value: Expr)
-    indirect case binary(lhs: Expr, operator: Token, rhs: Expr)
-    indirect case grouping(Expr)
+    indirect case assign(name: Token, value: Expression)
+    indirect case binary(lhs: Expression, operator: Token, rhs: Expression)
+    indirect case grouping(Expression)
     case literal(Literal?)
-    indirect case logical(lhs: Expr, operator: Token, rhs: Expr)
-    indirect case unary(operator: Token, rhs: Expr)
+    indirect case logical(lhs: Expression, operator: Token, rhs: Expression)
+    indirect case unary(operator: Token, rhs: Expression)
     case variable(Token)
     case empty
 
-    static func literal(bool: Bool?) -> Expr {
+    static func literal(bool: Bool?) -> Expression {
         if let bool = bool {
             return .literal(.bool(bool))
         }

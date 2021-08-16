@@ -50,7 +50,7 @@ private extension Interpreter {
     }
 
     func executeWhileStatement(
-        _ condition: Expr,
+        _ condition: Expression,
         _ body: Statement
     ) throws -> RuntimeValue {
         while try evaluate(condition).isTruthy {
@@ -60,7 +60,7 @@ private extension Interpreter {
     }
 
     func executeIfStatement(
-        _ condition: Expr,
+        _ condition: Expression,
         _ thenBranch: Statement,
         _ elseBranch: Statement?
     ) throws -> RuntimeValue {
@@ -90,7 +90,7 @@ private extension Interpreter {
         return .none
     }
 
-    func executeVarStatement(_ name: Token, _ initializer: Expr) throws -> RuntimeValue {
+    func executeVarStatement(_ name: Token, _ initializer: Expression) throws -> RuntimeValue {
         let value = try evaluate(initializer)
         environment.define(value, for: name.lexeme)
         return value
@@ -99,7 +99,7 @@ private extension Interpreter {
 
 private extension Interpreter {
 
-    func evaluate(_ expression: Expr) throws -> RuntimeValue {
+    func evaluate(_ expression: Expression) throws -> RuntimeValue {
         switch expression {
         case .literal(let lit):
             return evaluateLiteral(lit)
@@ -121,9 +121,9 @@ private extension Interpreter {
     }
 
     func evaluateLogic(
-        _ lhs: Expr,
+        _ lhs: Expression,
         _ operation: Token,
-        _ rhs: Expr
+        _ rhs: Expression
     ) throws -> RuntimeValue {
         let lhs = try evaluate(lhs)
 
@@ -138,7 +138,7 @@ private extension Interpreter {
         return try evaluate(rhs)
     }
 
-    func evaluateAssignment(_ name: Token, _ value: Expr) throws -> RuntimeValue {
+    func evaluateAssignment(_ name: Token, _ value: Expression) throws -> RuntimeValue {
         let value = try evaluate(value)
         try environment.assign(value, to: name)
         return value
@@ -157,7 +157,7 @@ private extension Interpreter {
         }
     }
 
-    func evaluateUnary(_ operation: Token, expr: Expr) throws -> RuntimeValue {
+    func evaluateUnary(_ operation: Token, expr: Expression) throws -> RuntimeValue {
         let value = try evaluate(expr)
 
         switch operation.type {
@@ -174,7 +174,7 @@ private extension Interpreter {
         }
     }
 
-    func evaluateBinary(_ lhs: Expr, operation: Token, _ rhs: Expr) throws -> RuntimeValue {
+    func evaluateBinary(_ lhs: Expression, operation: Token, _ rhs: Expression) throws -> RuntimeValue {
         let lhs = try evaluate(lhs)
         let rhs = try evaluate(rhs)
 

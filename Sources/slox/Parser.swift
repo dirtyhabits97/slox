@@ -158,7 +158,7 @@ private extension Parser {
     func varDeclaration() throws -> Statement {
         let name = try consume(.IDENTIFIER, message: "Expect variable name.")
 
-        let initializer: Expr
+        let initializer: Expression
         if match(.EQUAL) {
             initializer = try expression()
         } else {
@@ -172,11 +172,11 @@ private extension Parser {
 
 private extension Parser {
 
-    func expression() throws -> Expr {
+    func expression() throws -> Expression {
         try assignment()
     }
 
-    func assignment() throws -> Expr {
+    func assignment() throws -> Expression {
         let expression = try or()
 
         if match(.EQUAL) {
@@ -193,7 +193,7 @@ private extension Parser {
         return expression
     }
 
-    func equality() throws -> Expr {
+    func equality() throws -> Expression {
         var expression = try comparison()
 
         while match(.BANG_EQUAL, .EQUAL_EQUAL) {
@@ -205,7 +205,7 @@ private extension Parser {
         return expression
     }
 
-    func or() throws -> Expr {
+    func or() throws -> Expression {
         var expression = try and()
 
         while match(.OR) {
@@ -217,7 +217,7 @@ private extension Parser {
         return expression
     }
 
-    func and() throws -> Expr {
+    func and() throws -> Expression {
         var expression = try equality()
 
         while match(.AND) {
@@ -229,7 +229,7 @@ private extension Parser {
         return expression
     }
 
-    func comparison() throws -> Expr {
+    func comparison() throws -> Expression {
         var expression = try term()
 
         while match(.GREATER, .GREATER_EQUAL, .LESS, .LESS_EQUAL) {
@@ -241,7 +241,7 @@ private extension Parser {
         return expression
     }
 
-    func term() throws -> Expr {
+    func term() throws -> Expression {
         var expression = try factor()
 
         while match(.MINUS, .PLUS) {
@@ -253,7 +253,7 @@ private extension Parser {
         return expression
     }
 
-    func factor() throws -> Expr {
+    func factor() throws -> Expression {
         var expression = try unary()
 
         while match(.SLASH, .STAR) {
@@ -265,7 +265,7 @@ private extension Parser {
         return expression
     }
 
-    func unary() throws -> Expr {
+    func unary() throws -> Expression {
         if match(.BANG, .MINUS) {
             let op = previous()
             let rhs = try unary() // recursive call
@@ -275,7 +275,7 @@ private extension Parser {
         return try primary()
     }
 
-    func primary() throws -> Expr {
+    func primary() throws -> Expression {
         if match(.FALSE) { return .literal(bool: false) }
         if match(.TRUE) { return .literal(bool: true) }
         if match(.NIL) { return .literal(nil) }
