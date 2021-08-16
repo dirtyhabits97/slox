@@ -19,6 +19,7 @@ enum TokenType {
 
     // Keywords
     case AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE
+    case BREAK
 
     // End of file
     case EOF

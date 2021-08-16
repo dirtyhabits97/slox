@@ -12,6 +12,10 @@ final class Parser {
     private let tokens: [Token]
     private var current = 0
 
+    // source: https://github.com/alexito4/slox/blob/master/Sources/LoxCore/Parser.swift
+    // support break statements
+    private var loopLevel = 0
+
     init(tokens: [Token]) {
         self.tokens = tokens
     }
@@ -46,6 +50,9 @@ private extension Parser {
     }
 
     func statement() throws -> Statement {
+        if match(.FOR) {
+            return try forStatement()
+        }
         if match(.IF) {
             return try ifStatement()
         }
@@ -59,6 +66,48 @@ private extension Parser {
             return .block(try blockStatement())
         }
         return try expressionStatement()
+    }
+
+    func forStatement() throws -> Statement {
+        try consume(.LEFT_PAREN, message: "Expect '(' after 'for'.")
+
+        // for consists of:
+        // * initializer
+        // * condition
+        // * increment
+        // all 3 are optional
+        let initializer: Statement?
+        if match(.SEMICOLON) {
+            initializer = nil
+        } else if match(.VAR) {
+            initializer = try varDeclaration()
+        } else {
+            initializer = try expressionStatement()
+        }
+
+        let condition = check(.SEMICOLON) ? nil : try expression()
+        try consume(.SEMICOLON, message: "Expect ';' after loop condition.")
+
+        let increment = check(.RIGHT_PAREN) ? nil : try expression()
+        try consume(.RIGHT_PAREN, message: "Expect ')' after for clauses.")
+
+        var body = try statement()
+        // if there's an increment, move it after the body
+        // a for loop can be represented as a while loop
+        // var a = 1
+        // while a < 10
+        //  ...
+        //  a += 1
+        if let increment = increment {
+            body = .block([body, .expression(increment)])
+        }
+        // put the body inside a while loop
+        body = .while(condition: condition ?? .literal(bool: true), body: body)
+        // if there was an initializer, we move it BEFORE the while loop
+        if let initializer = initializer {
+            body = .block([initializer, body])
+        }
+        return body
     }
 
     func ifStatement() throws -> Statement {
