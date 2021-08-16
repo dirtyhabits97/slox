@@ -12,10 +12,6 @@ final class Parser {
     private let tokens: [Token]
     private var current = 0
 
-    // source: https://github.com/alexito4/slox/blob/master/Sources/LoxCore/Parser.swift
-    // support break statements
-    private var loopLevel = 0
-
     init(tokens: [Token]) {
         self.tokens = tokens
     }
