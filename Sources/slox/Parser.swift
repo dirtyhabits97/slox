@@ -271,6 +271,32 @@ private extension Parser {
         return try primary()
     }
 
+    func call() throws -> Expression {
+        var expr = try primary()
+
+        while true {
+            if match(.LEFT_PAREN) {
+                expr = try finishCall(expr)
+            } else {
+                break
+            }
+        }
+
+        return expr
+    }
+
+    func finishCall(_ callee: Expression) throws -> Expression {
+        var arguments: [Expression] = []
+        if !check(.RIGHT_PAREN) { // handle zero-arguments
+            repeat {
+                arguments.append(try expression())
+            } while match(.COMMA)
+        }
+
+        let paren = try consume(.RIGHT_PAREN, message: "Expect ')' after arguments.")
+        return .call(callee: callee, paren: paren, arguments: arguments)
+    }
+
     func primary() throws -> Expression {
         if match(.FALSE) { return .literal(bool: false) }
         if match(.TRUE) { return .literal(bool: true) }

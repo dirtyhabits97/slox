@@ -117,6 +117,8 @@ private extension Interpreter {
             return try evaluateAssignment(name, value)
         case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
             return try evaluateLogic(lhs, op, rhs)
+        case .call(callee: let callee, paren: let paren, arguments: let args):
+
         }
     }
 

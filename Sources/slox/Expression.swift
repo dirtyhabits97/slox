@@ -11,6 +11,7 @@ enum Expression {
 
     indirect case assign(name: Token, value: Expression)
     indirect case binary(lhs: Expression, operator: Token, rhs: Expression)
+    indirect case call(callee: Expression, paren: Token, arguments: [Expression])
     indirect case grouping(Expression)
     case literal(Literal?)
     indirect case logical(lhs: Expression, operator: Token, rhs: Expression)

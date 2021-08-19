@@ -106,7 +106,8 @@ private extension ASTPrinter {
             case .postfix:
                 return "(\(description(for: lhs)) \(description(for: rhs)) \(op.lexeme))"
             }
-
+        case .call(callee: let callee, paren: let paren, arguments: let args):
+            return stringifyCall(callee, paren, args)
         case .grouping(let expr):
             return parenthesize("group", elements: expr)
         case .literal(let val):
@@ -121,6 +122,14 @@ private extension ASTPrinter {
         case .assign(name: let name, value: let value):
             return parenthesize(name.lexeme, elements: "=", value)
         }
+    }
+
+    func stringifyCall(
+        _ callee: Expression,
+        _ paren: Token,
+        _ arguments: [Expression]
+    ) -> String {
+        return "TODO: implement this \(#function)"
     }
 }
 
