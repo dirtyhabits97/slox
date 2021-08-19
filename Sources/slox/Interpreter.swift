@@ -134,9 +134,17 @@ private extension Interpreter {
             args.append(try evaluate(arg))
         }
 
+        // Validate is a function
         guard case .callable(let function) = callee else {
-            fatalError("TODO: handle this error")
+            throw RuntimeError(token: paren, message: "Can only call functions and classes.")
         }
+
+        // Validate arity
+        guard args.count == function.arity else {
+            let message = "Expected \(function.arity) arguments but got \(args.count)."
+            throw RuntimeError(token: paren, message: message)
+        }
+
         return try function.call(interpreter: self, arguments: args)
     }
 
@@ -382,5 +390,7 @@ struct RuntimeError: Error {
 protocol Callable: CustomStringConvertible {
 
     var name: String { get }
+    /// Number of arguments a function or operation expects.
+    var arity: Int { get }
     func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
 }
