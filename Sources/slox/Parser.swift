@@ -268,7 +268,7 @@ private extension Parser {
             return .unary(operator: op, rhs: rhs)
         }
 
-        return try primary()
+        return try call()
     }
 
     func call() throws -> Expression {
@@ -289,6 +289,12 @@ private extension Parser {
         var arguments: [Expression] = []
         if !check(.RIGHT_PAREN) { // handle zero-arguments
             repeat {
+                // no need for a limit, BUT
+                // it simplifies bytecode interpreter
+                if arguments.count >= 255 {
+                    // don't throw the error
+                    _ = error(token: peek(), message: "Can't have more than 255 arguments")
+                }
                 arguments.append(try expression())
             } while match(.COMMA)
         }

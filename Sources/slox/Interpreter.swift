@@ -118,8 +118,26 @@ private extension Interpreter {
         case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
             return try evaluateLogic(lhs, op, rhs)
         case .call(callee: let callee, paren: let paren, arguments: let args):
-
+            return try evaluateCall(callee, paren, args)
         }
+    }
+
+    func evaluateCall(
+        _ callee: Expression, 
+        _ paren: Token, 
+        _ arguments: [Expression]
+    ) throws -> RuntimeValue {
+        let callee = try evaluate(callee)
+
+        var args: [RuntimeValue] = []
+        for arg in arguments {
+            args.append(try evaluate(arg))
+        }
+
+        guard case .callable(let function) = callee else {
+            fatalError("TODO: handle this error")
+        }
+        return try function.call(interpreter: self, arguments: args)
     }
 
     func evaluateLogic(
@@ -263,12 +281,13 @@ private extension Interpreter {
     }
 }
 
-enum RuntimeValue: Equatable {
+enum RuntimeValue {
 
     case number(Double)
     case string(String)
     case bool(Bool)
     case none
+    case callable(Callable)
 
     var number: Double? {
         switch self {
@@ -294,6 +313,26 @@ enum RuntimeValue: Equatable {
     }
 }
 
+extension RuntimeValue: Equatable {
+
+    static func == (_ lhs: RuntimeValue, _ rhs: RuntimeValue) -> Bool {
+        switch (lhs, rhs) {
+        case (.number(let l), .number(let r)):
+            return l == r
+        case (.string(let l), .string(let r)):
+            return l == r
+        case (.bool(let l), .bool(let r)):
+            return l == r
+        case (.none, .none):
+            return true
+        case (.callable(let l), .callable(let r)):
+            return l.name == r.name
+        default:
+            return false
+        }
+    }
+}
+
 extension RuntimeValue: CustomStringConvertible {
 
     var description: String {
@@ -306,6 +345,8 @@ extension RuntimeValue: CustomStringConvertible {
             return "\"\(str)\""
         case .bool(let bool):
             return String(bool)
+        case .callable(let call):
+            return call.description
         }
     }
 }
@@ -336,4 +377,10 @@ struct RuntimeError: Error {
 
     let token: Token
     let message: String
+}
+
+protocol Callable: CustomStringConvertible {
+
+    var name: String { get }
+    func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
 }
