@@ -9,7 +9,16 @@ import Foundation
 
 final class Interpreter {
 
-    private var environment = Environment()
+    let globals = Environment()
+    private lazy var environment = globals
+
+    init() {
+        globals.define("clock", value: .callable(Callable(
+            description: "<native fn>", 
+            arity: 0, 
+            call: { _, _ in .number(Date().timeIntervalSince1970) }
+        )))
+    }
 
     func interpret(_ statements: [Statement]) {
         do {
@@ -145,7 +154,7 @@ private extension Interpreter {
             throw RuntimeError(token: paren, message: message)
         }
 
-        return try function.call(interpreter: self, arguments: args)
+        return try function.call(self, args)
     }
 
     func evaluateLogic(
@@ -334,7 +343,7 @@ extension RuntimeValue: Equatable {
         case (.none, .none):
             return true
         case (.callable(let l), .callable(let r)):
-            return l.name == r.name
+            return l == r
         default:
             return false
         }
@@ -387,10 +396,25 @@ struct RuntimeError: Error {
     let message: String
 }
 
-protocol Callable: CustomStringConvertible {
+struct Callable: CustomStringConvertible, Equatable {
 
-    var name: String { get }
-    /// Number of arguments a function or operation expects.
-    var arity: Int { get }
-    func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
+    let description: String
+    let arity: Int
+    let call: (_ interpreter: Interpreter, _ args: [RuntimeValue]) throws -> RuntimeValue
 }
+
+extension Callable {
+
+    static func == (_ lhs: Callable, _ rhs: Callable) -> Bool {
+        lhs.description == rhs.description &&
+        lhs.arity == rhs.arity
+    }
+}
+
+// protocol Callable: CustomStringConvertible {
+
+//     var name: String { get }
+//     /// Number of arguments a function or operation expects.
+//     var arity: Int { get }
+//     func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
+// }

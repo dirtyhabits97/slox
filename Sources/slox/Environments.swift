@@ -16,6 +16,10 @@ final class Environment {
         self.enclosing = enclosing
     }
 
+    func define(_ name: String, value: RuntimeValue) {
+        values[name] = value
+    }
+
     func define(_ value: RuntimeValue, for name: String) {
         values[name] = value
     }
