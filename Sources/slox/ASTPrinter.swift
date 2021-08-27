@@ -49,7 +49,30 @@ extension ASTPrinter: StatementVisitor {
             return visitVariableStatement(name, initializer)
         case .while(condition: let condition, body: let body):
             return visitWhileStatement(condition, body)
+        case .function(name: let name, params: let params, body: let body):
+            return visitFunctionStatement(name, params, body)
         }
+    }
+
+    func visitFunctionStatement(
+        _ name: Token,
+        _ params: [Token],
+        _ body: [Statement]
+    ) -> String {
+        var str = "(fun \(name.lexeme)"
+
+        str.append("(")
+        for param in params {
+            str.append(" \(param.lexeme)")
+        }
+        str.append(")")
+
+        for stmt in body {
+            str.append(description(for: stmt))
+        }
+
+        str.append(")")
+        return str
     }
 
     func visitBlockStatement(_ statements: [Statement]) -> String {

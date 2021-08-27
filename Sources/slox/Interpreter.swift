@@ -55,6 +55,8 @@ private extension Interpreter {
             return try executeIfStatement(condition, then, `else`)
         case .while(condition: let condition, body: let body):
             return try executeWhileStatement(condition, body)
+        case .function(name: let name, params: let params, body: let body):
+            return try executeFunctionStatement(name, params, body)
         }
     }
 
@@ -396,25 +398,21 @@ struct RuntimeError: Error {
     let message: String
 }
 
-struct Callable: CustomStringConvertible, Equatable {
+struct AnyCallable: CustomStringConvertible, Equatable {
+    static func == (lhs: AnyCallable, rhs: AnyCallable) -> Bool {
+        // TODO: implement this
+        return true
+    }
 
-    let description: String
+
     let arity: Int
     let call: (_ interpreter: Interpreter, _ args: [RuntimeValue]) throws -> RuntimeValue
+    let description: String
 }
 
-extension Callable {
+ protocol Callable: CustomStringConvertible {
 
-    static func == (_ lhs: Callable, _ rhs: Callable) -> Bool {
-        lhs.description == rhs.description &&
-        lhs.arity == rhs.arity
-    }
-}
-
-// protocol Callable: CustomStringConvertible {
-
-//     var name: String { get }
-//     /// Number of arguments a function or operation expects.
-//     var arity: Int { get }
-//     func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
-// }
+     /// Number of arguments a function or operation expects.
+     var arity: Int { get }
+     func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
+ }

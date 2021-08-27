@@ -35,6 +35,9 @@ private extension Parser {
 
     func declaration() throws -> Statement {
         do {
+            if match(.FUN) {
+                return try function(kind: "function")
+            }
             if match(.VAR) {
                 return try varDeclaration()
             }
@@ -149,6 +152,32 @@ private extension Parser {
         let expr = try expression()
         try consume(.SEMICOLON, message: "Expect ';' after expression.")
         return .expression(expr)
+    }
+
+    // kind param allows for reuse when we introduce classes
+    func function(kind: String) throws -> Statement {
+        // name of the function
+        let name = try consume(.IDENTIFIER, message: "Expect \(kind) name.")
+        try consume(.LEFT_PAREN, message: "Expect '(' after \(kind) name.")
+
+        // params of the function
+        var params: [Token] = []
+
+        if !check(.RIGHT_PAREN) {
+            repeat {
+                if params.count >= 255 {
+                    // don't throw the error
+                    _ = error(token: peek(), message: "Can't have more than 255 arguments")
+                }
+                params.append(try consume(.IDENTIFIER, message: "Expect aparameter name."))
+            } while match(.COMMA)
+        }
+
+        try consume(.RIGHT_PAREN, message: "Expect ')' after parameters.")
+
+        // body of the function
+        try consume(.LEFT_BRACE, message: "Expect '{' before \(kind) body.")
+        return .function(name: name, params: params, body: try blockStatement())
     }
 
     func varDeclaration() throws -> Statement {

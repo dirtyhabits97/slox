@@ -11,6 +11,7 @@ enum Statement {
 
     indirect case block([Statement])
     case expression(Expression)
+    indirect case function(name: Token, params: [Token], body: [Statement])
     indirect case `if`(condition: Expression, then: Statement, else: Statement?)
     case print(Expression)
     case variable(name: Token, initializer: Expression)
