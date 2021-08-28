@@ -20,10 +20,6 @@ final class Environment {
         values[name] = value
     }
 
-    func define(_ value: RuntimeValue, for name: String) {
-        values[name] = value
-    }
-
     func get(_ name: Token) throws -> RuntimeValue {
         if let value = values[name.lexeme] {
             return value

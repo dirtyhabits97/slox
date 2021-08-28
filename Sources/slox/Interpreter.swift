@@ -13,10 +13,10 @@ final class Interpreter {
     private lazy var environment = globals
 
     init() {
-        globals.define("clock", value: .callable(Callable(
-            description: "<native fn>", 
-            arity: 0, 
-            call: { _, _ in .number(Date().timeIntervalSince1970) }
+        globals.define("clock", value: .callable(AnonymousCallable(
+            arity: 0,
+            call: { _ , _ in .number(Date().timeIntervalSince1970) },
+            description: "<native fn>"
         )))
     }
 
@@ -33,7 +33,7 @@ final class Interpreter {
     }
 }
 
-private extension Interpreter {
+internal extension Interpreter {
 
     @discardableResult
     func execute(_ statement: Statement) throws -> RuntimeValue {
@@ -58,6 +58,16 @@ private extension Interpreter {
         case .function(name: let name, params: let params, body: let body):
             return try executeFunctionStatement(name, params, body)
         }
+    }
+
+    func executeFunctionStatement(
+        _ name: Token,
+        _ params: [Token],
+        _ body: [Statement]
+    ) throws -> RuntimeValue {
+        let function = Function(name: name, params: params, body: body)
+        environment.define(name.lexeme, value: .callable(function))
+        return .none
     }
 
     func executeWhileStatement(
@@ -103,7 +113,7 @@ private extension Interpreter {
 
     func executeVarStatement(_ name: Token, _ initializer: Expression) throws -> RuntimeValue {
         let value = try evaluate(initializer)
-        environment.define(value, for: name.lexeme)
+        environment.define(name.lexeme, value: value)
         return value
     }
 }
@@ -156,7 +166,7 @@ private extension Interpreter {
             throw RuntimeError(token: paren, message: message)
         }
 
-        return try function.call(self, args)
+        return try function.call(interpreter: self, arguments: args)
     }
 
     func evaluateLogic(
@@ -235,9 +245,9 @@ private extension Interpreter {
 
         // MARK: Equality operations
         case .BANG_EQUAL:
-            return .bool(lhs != rhs)
+            return try evaluateEquality(operation, lhs, rhs)
         case .EQUAL_EQUAL:
-            return .bool(lhs == rhs)
+            return try evaluateEquality(operation, lhs, rhs)
 
         // MARK: Arithmetic operations
         case .MINUS:
@@ -300,55 +310,31 @@ private extension Interpreter {
     }
 }
 
-enum RuntimeValue {
+private extension Interpreter {
 
-    case number(Double)
-    case string(String)
-    case bool(Bool)
-    case none
-    case callable(Callable)
-
-    var number: Double? {
-        switch self {
-        case .number(let num):
-            return num
-        default:
-            return nil
-        }
-    }
-
-    // What is truth?
-    // https://craftinginterpreters.com/evaluating-expressions.html#truthiness-and-falsiness
-    var isTruthy: Bool {
-        // For now, follow ruby's rule
-        switch self {
-        case .none:
-            return false
-        case .bool(let bool):
-            return bool
-        default:
-            return true
-        }
-    }
-}
-
-extension RuntimeValue: Equatable {
-
-    static func == (_ lhs: RuntimeValue, _ rhs: RuntimeValue) -> Bool {
+    func evaluateEquality(
+        _ operation: Token,
+        _ lhs: RuntimeValue,
+        _ rhs: RuntimeValue
+    ) throws -> RuntimeValue {
+        let bool: Bool
         switch (lhs, rhs) {
         case (.number(let l), .number(let r)):
-            return l == r
+            bool = l == r
         case (.string(let l), .string(let r)):
-            return l == r
+            bool = l == r
         case (.bool(let l), .bool(let r)):
-            return l == r
+            bool = l == r
         case (.none, .none):
-            return true
-        case (.callable(let l), .callable(let r)):
-            return l == r
+            bool = true
         default:
-            return false
+            throw RuntimeError(token: operation, message: "Can't compare \(lhs) and \(rhs)")
         }
+
+        if operation.type == .BANG_EQUAL {
+            return .bool(!bool)
+        }
+        return .bool(bool)
     }
 }
 
@@ -391,28 +377,3 @@ private extension Interpreter {
         }
     }
 }
-
-struct RuntimeError: Error {
-
-    let token: Token
-    let message: String
-}
-
-struct AnyCallable: CustomStringConvertible, Equatable {
-    static func == (lhs: AnyCallable, rhs: AnyCallable) -> Bool {
-        // TODO: implement this
-        return true
-    }
-
-
-    let arity: Int
-    let call: (_ interpreter: Interpreter, _ args: [RuntimeValue]) throws -> RuntimeValue
-    let description: String
-}
-
- protocol Callable: CustomStringConvertible {
-
-     /// Number of arguments a function or operation expects.
-     var arity: Int { get }
-     func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue
- }

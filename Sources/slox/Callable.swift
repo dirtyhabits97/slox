@@ -1,0 +1,53 @@
+//
+//  File.swift
+//  
+//
+//  Created by user on 27/08/21.
+//
+
+import Foundation
+
+protocol Callable: CustomStringConvertible {
+
+    /// Number of arguments a function or operation expects.
+    var arity: Int { get }
+    func call(
+        interpreter: Interpreter,
+        arguments: [RuntimeValue]
+    ) throws -> RuntimeValue
+}
+
+struct AnonymousCallable: Callable {
+
+    let arity: Int
+    let call: (Interpreter, [RuntimeValue]) throws -> RuntimeValue
+    let description: String
+
+    func call(interpreter: Interpreter, arguments: [RuntimeValue]) throws -> RuntimeValue {
+        try call(interpreter, arguments)
+    }
+}
+
+struct Function: Callable {
+
+    let name: Token
+    let params: [Token]
+    let body: [Statement]
+
+    var arity: Int { params.count }
+
+    var description: String {
+        "<fn \(name.lexeme)>"
+    }
+
+    func call(
+        interpreter: Interpreter,
+        arguments: [RuntimeValue]
+    ) throws -> RuntimeValue {
+        let environment = Environment(enclosing: interpreter.globals)
+        for (param, arg) in zip(params, arguments) {
+            environment.define(param.lexeme, value: arg)
+        }
+        return try interpreter.executeBlockStatement(body, env: environment)
+    }
+}
