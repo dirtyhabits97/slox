@@ -33,6 +33,8 @@ struct Function: Callable {
     let name: Token
     let params: [Token]
     let body: [Statement]
+    // this helps with nested closures / functions
+    let environment: Environment
 
     var arity: Int { params.count }
 

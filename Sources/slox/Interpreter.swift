@@ -77,7 +77,12 @@ internal extension Interpreter {
         _ params: [Token],
         _ body: [Statement]
     ) throws -> RuntimeValue {
-        let function = Function(name: name, params: params, body: body)
+        let function = Function(
+            name: name,
+            params: params,
+            body: body,
+            environment: environment
+        )
         environment.define(name.lexeme, value: .callable(function))
         return .none
     }
