@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Expression {
+enum Expression: Hashable {
 
     indirect case assign(name: Token, value: Expression)
     indirect case binary(lhs: Expression, operator: Token, rhs: Expression)

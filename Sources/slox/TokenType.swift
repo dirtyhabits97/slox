@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TokenType {
+enum TokenType: Equatable, Hashable {
     // Single-character tokens
     case LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR
 

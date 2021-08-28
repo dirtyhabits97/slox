@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Token: CustomStringConvertible {
+struct Token: CustomStringConvertible, Hashable {
 
     let type: TokenType
     let lexeme: String
@@ -23,7 +23,7 @@ struct Token: CustomStringConvertible {
 }
 
 // source: https://github.com/heckj/Slox/blob/main/Sources/Slox/LoxTokens.swift
-enum Literal {
+enum Literal: Hashable {
 
     case string(String)
     case number(Double)

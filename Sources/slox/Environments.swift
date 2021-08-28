@@ -32,6 +32,10 @@ final class Environment {
         throw RuntimeError(token: name, message: "Undefined variable '\(name.lexeme)'.")
     }
 
+    func get(_ name: Token, distance: Int) throws -> RuntimeValue {
+        fatalError("TODO: implement this")
+    }
+
     func assign(_ value: RuntimeValue, to name: Token) throws {
         if values[name.lexeme] != nil {
             values[name.lexeme] = value

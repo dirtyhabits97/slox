@@ -11,6 +11,7 @@ final class Interpreter {
 
     let globals = Environment()
     private lazy var environment = globals
+    private lazy var locals: [Expression: Int] = [:]
 
     init() {
         globals.define("clock", value: .callable(AnonymousCallable(
@@ -147,7 +148,7 @@ private extension Interpreter {
         case .empty:
             return .none
         case .variable(let name):
-            return try environment.get(name)
+            return try evaluateVariable(name, expression)
         case .assign(name: let name, value: let value):
             return try evaluateAssignment(name, value)
         case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
@@ -155,6 +156,13 @@ private extension Interpreter {
         case .call(callee: let callee, paren: let paren, arguments: let args):
             return try evaluateCall(callee, paren, args)
         }
+    }
+
+    func evaluateVariable(
+        _ name: Token,
+        _ expr: Expression
+    ) throws -> RuntimeValue {
+        try lookUpVariable(name, expr)
     }
 
     func evaluateCall(
@@ -389,5 +397,24 @@ private extension Interpreter {
         default:
             throw RuntimeError(token: operation, message: "Operands must be numbers.")
         }
+    }
+}
+
+// MARK: - Variable resolution
+
+extension Interpreter {
+
+    func resolve(_ expr: Expression, depth: Int) {
+        locals[expr] = depth
+    }
+}
+
+private extension Interpreter {
+
+    func lookUpVariable(_ name: Token, _ expr: Expression) throws -> RuntimeValue {
+        if let distance = locals[expr] { // the distance in the environment hierarchy
+            return try environment.get(name, distance: distance)
+        }
+        return try globals.get(name)
     }
 }
