@@ -44,3 +44,8 @@ struct RuntimeError: Error {
     let token: Token
     let message: String
 }
+
+struct Return: Error {
+
+    let value: RuntimeValue
+}

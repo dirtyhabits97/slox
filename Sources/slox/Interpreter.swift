@@ -57,7 +57,19 @@ internal extension Interpreter {
             return try executeWhileStatement(condition, body)
         case .function(name: let name, params: let params, body: let body):
             return try executeFunctionStatement(name, params, body)
+        case .return(keyword: let keyword, value: let value):
+            return try executeReturnStatement(keyword, value)
         }
+    }
+
+    func executeReturnStatement(
+        _ keyword: Token,
+        _ value: Expression?
+    ) throws -> RuntimeValue {
+        if let value = value {
+            throw Return(value: try evaluate(value))
+        }
+        throw Return(value: .none)
     }
 
     func executeFunctionStatement(

@@ -58,6 +58,9 @@ private extension Parser {
         if match(.PRINT) {
             return try printStatement()
         }
+        if match(.RETURN) {
+            return try returnStatement()
+        }
         if match(.WHILE) {
             return try whileStatement()
         }
@@ -127,6 +130,21 @@ private extension Parser {
         let val = try expression()
         try consume(.SEMICOLON, message: "Expect ';' after value.")
         return .print(val)
+    }
+
+    func returnStatement() throws -> Statement {
+        let keyword = previous() // this gives the return statement
+        let value: Expression?
+
+        // returning values is optional
+        if !check(.SEMICOLON) {
+            value = try expression()
+        } else {
+            value = nil
+        }
+
+        try consume(.SEMICOLON, message: "Expect ';' after return value.")
+        return .return(keyword: keyword, value: value)
     }
 
     func whileStatement() throws -> Statement {

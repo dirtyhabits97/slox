@@ -48,6 +48,11 @@ struct Function: Callable {
         for (param, arg) in zip(params, arguments) {
             environment.define(param.lexeme, value: arg)
         }
-        return try interpreter.executeBlockStatement(body, env: environment)
+        do {
+            // TODO: consider ignoring this value and always return .none
+            return try interpreter.executeBlockStatement(body, env: environment)
+        } catch let returnValue as Return {
+            return returnValue.value
+        }
     }
 }

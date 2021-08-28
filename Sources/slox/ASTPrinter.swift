@@ -51,7 +51,16 @@ extension ASTPrinter: StatementVisitor {
             return visitWhileStatement(condition, body)
         case .function(name: let name, params: let params, body: let body):
             return visitFunctionStatement(name, params, body)
+        case .return(keyword: let keyword, value: let value):
+            return visitReturnStatement(keyword, value)
         }
+    }
+
+    func visitReturnStatement(
+        _ keyword: Token,
+        _ value: Expression?
+    ) -> String {
+        parenthesize(keyword.lexeme, elements: value)
     }
 
     func visitFunctionStatement(
