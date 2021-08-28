@@ -58,7 +58,7 @@ extension ASTPrinter: StatementVisitor {
 
     func visitReturnStatement(
         _ keyword: Token,
-        _ value: Expression?
+        _ value: Expression
     ) -> String {
         parenthesize(keyword.lexeme, elements: value)
     }

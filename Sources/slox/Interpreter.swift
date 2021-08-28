@@ -64,12 +64,9 @@ internal extension Interpreter {
 
     func executeReturnStatement(
         _ keyword: Token,
-        _ value: Expression?
+        _ value: Expression
     ) throws -> RuntimeValue {
-        if let value = value {
-            throw Return(value: try evaluate(value))
-        }
-        throw Return(value: .none)
+        throw Return(value: try evaluate(value))
     }
 
     func executeFunctionStatement(

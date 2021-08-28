@@ -134,13 +134,13 @@ private extension Parser {
 
     func returnStatement() throws -> Statement {
         let keyword = previous() // this gives the return statement
-        let value: Expression?
+        let value: Expression
 
         // returning values is optional
         if !check(.SEMICOLON) {
             value = try expression()
         } else {
-            value = nil
+            value = .empty
         }
 
         try consume(.SEMICOLON, message: "Expect ';' after return value.")
