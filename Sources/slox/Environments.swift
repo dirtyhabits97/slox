@@ -58,7 +58,7 @@ extension Environment {
         try ancestor(at: distance, token: name).get(name)
     }
 
-    func assing(
+    func assign(
         _ name: Token,
         at distance: Int,
         _ value: RuntimeValue

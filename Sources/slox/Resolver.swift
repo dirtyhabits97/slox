@@ -10,8 +10,10 @@ import Foundation
 final class Resolver {
 
     private let interpreter: Interpreter
+    private var currentFunction = FunctionStatus.none
     // The scope is a stack
     private var scopes: [[String: Bool]] = []
+
 
     init(interpreter: Interpreter) {
         self.interpreter = interpreter
@@ -34,13 +36,22 @@ private extension Resolver {
             resolveVarStatement(name, initializer)
         case .function(name: let name, params: let params, body: let body):
             resolveFunctionStatement(name, params, body)
-        case .expression(let expr), .print(let expr), .return(keyword: _, value: let expr):
+        case .expression(let expr), .print(let expr):
             resolve(expr)
         case .if(condition: let condition, then: let thenStatement, else: let elseStatement):
             resolveIfStatement(condition, thenStatement: thenStatement, elseStatement: elseStatement)
         case .while(condition: let condition, body: let body):
             resolveWhileStatement(condition, body)
+        case .return(keyword: let keyword, value: let value):
+            resolveReturnStatement(keyword, value)
         }
+    }
+
+    func resolveReturnStatement(_ keyword: Token, _ value: Expression) {
+        if currentFunction == .none {
+            Lox.error(token: keyword, message: "Can't return from top-level code.")
+        }
+        resolve(value)
     }
 
     func resolveWhileStatement(
@@ -63,10 +74,17 @@ private extension Resolver {
         }
     }
 
-    func resolveFunctionStatement(_ name: Token, _ params: [Token], _ body: [Statement]) {
+    func resolveFunctionStatement(
+        _ name: Token,
+        _ params: [Token],
+        _ body: [Statement]
+    ) {
         declare(name)
         define(name)
         // TODO: consider moving this to another function
+        let enclosingFunction = currentFunction
+        currentFunction = .some
+        defer { currentFunction = enclosingFunction }
         beginScope()
         for param in params {
             declare(param)
@@ -179,5 +197,16 @@ private extension Resolver {
         if scopes.isEmpty { return }
         // mark the var as resolved
         scopes[scopes.count - 1][token.lexeme] = true
+    }
+}
+
+// MARK: - Top level return
+// Don't allow the user to use `return` in the global scope
+
+private extension Resolver {
+
+    enum FunctionStatus {
+        case none
+        case some
     }
 }
