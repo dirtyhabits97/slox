@@ -40,8 +40,6 @@ private extension Resolver {
             resolveIfStatement(condition, thenStatement: thenStatement, elseStatement: elseStatement)
         case .while(condition: let condition, body: let body):
             resolveWhileStatement(condition, body)
-        @unknown default:
-            break // do nothing
         }
     }
 
@@ -98,13 +96,40 @@ private extension Resolver {
         case .variable(let token):
             resolveVarExpression(token, expression)
         case .assign(name: let name, value: let value):
-            resolveAssign(name, value, expression)
-        default:
+            resolveAssignExpression(name, value, expression)
+        case .call(callee: let callee, paren: _, arguments: let args):
+            resolveCallExpression(callee, args)
+        case .binary(lhs: let lhs, operator: _, rhs: let rhs):
+            resolveBinaryExpression(lhs, rhs)
+        case .literal, .empty:
             break // do nothing
+        case .logical(lhs: let lhs, operator: _, rhs: let rhs):
+            resolveLogicalExpression(lhs, rhs)
+        case .unary(operator: _, rhs: let expr), .grouping(let expr):
+            resolve(expr)
         }
     }
 
-    func resolveAssign(_ name: Token, _ value: Expression, _ expr: Expression) {
+    func resolveUnaryExpression(_ expr: Expression) {
+        resolve(expr)
+    }
+
+    func resolveLogicalExpression(_ lhs: Expression, _ rhs: Expression) {
+        resolve(lhs)
+        resolve(rhs)
+    }
+
+    func resolveBinaryExpression(_ lhs: Expression, _ rhs: Expression) {
+        resolve(lhs)
+        resolve(rhs)
+    }
+
+    func resolveCallExpression(_ callee: Expression, _ arguments: [Expression]) {
+        resolve(callee)
+        arguments.forEach(resolve(_:))
+    }
+
+    func resolveAssignExpression(_ name: Token, _ value: Expression, _ expr: Expression) {
         resolve(value)
         resolveLocal(expr, name: name)
     }
