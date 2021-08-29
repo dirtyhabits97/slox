@@ -166,6 +166,12 @@ private extension Resolver {
         if scopes.isEmpty { return }
         // mark it as "not ready yet"
         // false if we haven't finished resolving that var's initializer
+        if scopes.last?[token.lexeme] != nil {
+            Lox.error(
+                token: token,
+                message: "Already a variable with this same in this scope."
+            )
+        }
         scopes[scopes.count - 1][token.lexeme] = false
     }
 
