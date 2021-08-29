@@ -32,10 +32,6 @@ final class Environment {
         throw RuntimeError(token: name, message: "Undefined variable '\(name.lexeme)'.")
     }
 
-    func get(_ name: Token, distance: Int) throws -> RuntimeValue {
-        fatalError("TODO: implement this")
-    }
-
     func assign(_ value: RuntimeValue, to name: Token) throws {
         if values[name.lexeme] != nil {
             values[name.lexeme] = value
@@ -48,5 +44,39 @@ final class Environment {
         }
 
         throw RuntimeError(token: name, message: "Undefined variable '\(name.lexeme)'.")
+    }
+}
+
+// MARK: - Variable resolution
+
+extension Environment {
+
+    func get(
+        _ name: Token,
+        distance: Int
+    ) throws -> RuntimeValue {
+        try ancestor(at: distance, token: name).get(name)
+    }
+
+    func assing(
+        _ name: Token,
+        at distance: Int,
+        _ value: RuntimeValue
+    ) throws {
+        try ancestor(at: distance, token: name).values[name.lexeme] = value
+    }
+
+    private func ancestor(
+        at distance: Int,
+        token: Token
+    ) throws -> Environment {
+        var environment: Environment = self
+        for d in 0..<distance {
+            guard let enclosing = environment.enclosing else {
+                throw RuntimeError(token: token, message: "No enclosing environment at \(d) distance.")
+            }
+            environment = enclosing
+        }
+        return environment
     }
 }

@@ -150,7 +150,7 @@ private extension Interpreter {
         case .variable(let name):
             return try evaluateVariable(name, expression)
         case .assign(name: let name, value: let value):
-            return try evaluateAssignment(name, value)
+            return try evaluateAssignment(name, value, expression)
         case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
             return try evaluateLogic(lhs, op, rhs)
         case .call(callee: let callee, paren: let paren, arguments: let args):
@@ -209,8 +209,16 @@ private extension Interpreter {
         return try evaluate(rhs)
     }
 
-    func evaluateAssignment(_ name: Token, _ value: Expression) throws -> RuntimeValue {
+    func evaluateAssignment(
+        _ name: Token,
+        _ value: Expression,
+        _ expr: Expression
+    ) throws -> RuntimeValue {
         let value = try evaluate(value)
+        if let distance = locals[name] {
+
+        }
+
         try environment.assign(value, to: name)
         return value
     }

@@ -16,15 +16,15 @@ final class Resolver {
     init(interpreter: Interpreter) {
         self.interpreter = interpreter
     }
-}
-
-private extension Resolver {
 
     func resolve(_ statements: [Statement]) {
         for stmt in statements {
             resolve(stmt)
         }
     }
+}
+
+private extension Resolver {
 
     func resolve(_ statement: Statement) {
         switch statement {

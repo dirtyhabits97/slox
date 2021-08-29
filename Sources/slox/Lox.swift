@@ -53,6 +53,9 @@ private extension Lox {
         // Stop if there was a syntax error
         if hadError { return }
 
+        let resolver = Resolver(interpreter: interpreter)
+        resolver.resolve(statements)
+
         ASTPrinter(strategy: .infix).print(statements)
         interpreter.interpret(statements)
     }
