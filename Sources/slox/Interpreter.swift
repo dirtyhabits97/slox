@@ -10,8 +10,8 @@ import Foundation
 final class Interpreter {
 
     let globals = Environment()
-    private lazy var environment = globals
-    private lazy var locals: [Expression: Int] = [:]
+    private var environment: Environment
+    private var locals: [Expression: Int]
 
     init() {
         globals.define("clock", value: .callable(AnonymousCallable(
@@ -19,6 +19,8 @@ final class Interpreter {
             call: { _ , _ in .number(Date().timeIntervalSince1970) },
             description: "<native fn>"
         )))
+        environment = globals
+        locals = [:]
     }
 
     func interpret(_ statements: [Statement]) {
@@ -34,7 +36,7 @@ final class Interpreter {
     }
 }
 
-// MARK: - Statements
+// MARK: - Statement
 
 internal extension Interpreter {
 
@@ -169,6 +171,8 @@ private extension Interpreter {
         return .none
     }
 }
+
+// MARK: - Expression
 
 private extension Interpreter {
 
@@ -405,26 +409,6 @@ private extension Interpreter {
     }
 }
 
-extension RuntimeValue: CustomStringConvertible {
-
-    var description: String {
-        switch self {
-        case .none:
-            return "nil"
-        case .number(let num):
-            return String(num)
-        case .string(let str):
-            return "\"\(str)\""
-        case .bool(let bool):
-            return String(bool)
-        case .callable(let call):
-            return call.description
-        case .class(let klass):
-            return klass.description
-        }
-    }
-}
-
 private extension Interpreter {
 
     func checkNumberOperand(_ operation: Token, operand: RuntimeValue) throws {
@@ -464,13 +448,4 @@ private extension Interpreter {
         }
         return try globals.get(name)
     }
-}
-
-// MARK: - Classes
-// TODO: Move this to anothe file
-
-struct Class: CustomStringConvertible {
-
-    let name: String
-    var description: String { name }
 }

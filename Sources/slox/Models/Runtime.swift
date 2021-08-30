@@ -40,13 +40,28 @@ enum RuntimeValue {
     }
 }
 
+extension RuntimeValue: CustomStringConvertible {
+
+    var description: String {
+        switch self {
+        case .none:
+            return "nil"
+        case .number(let num):
+            return String(num)
+        case .string(let str):
+            return "\"\(str)\""
+        case .bool(let bool):
+            return String(bool)
+        case .callable(let call):
+            return call.description
+        case .class(let klass):
+            return klass.description
+        }
+    }
+}
+
 struct RuntimeError: Error {
 
     let token: Token
     let message: String
-}
-
-struct Return: Error {
-
-    let value: RuntimeValue
 }

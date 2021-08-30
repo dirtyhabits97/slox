@@ -2,25 +2,10 @@
 //  File.swift
 //  
 //
-//  Created by user on 1/08/21.
+//  Created by user on 29/08/21.
 //
 
 import Foundation
-
-struct Token: CustomStringConvertible, Hashable {
-
-    let type: TokenType
-    let lexeme: String
-    let literal: Literal?
-    let line: Int
-
-    var description: String {
-        if let literal = literal {
-            return "\(type) \(lexeme) \(literal)"
-        }
-        return "\(type) \(lexeme)"
-    }
-}
 
 // source: https://github.com/heckj/Slox/blob/main/Sources/Slox/LoxTokens.swift
 enum Literal: Hashable {
@@ -28,6 +13,7 @@ enum Literal: Hashable {
     case string(String)
     case number(Double)
     case bool(Bool)
+    case none
 
     static func string<S: StringProtocol>(from str: S) -> Literal {
         .string(String(str))
@@ -49,6 +35,8 @@ extension Literal: CustomStringConvertible {
             return String(num)
         case .bool(let bool):
             return String(bool)
+        case .none:
+            return "nil"
         }
     }
 }
