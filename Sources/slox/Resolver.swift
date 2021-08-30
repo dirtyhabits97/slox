@@ -298,7 +298,7 @@ private extension Resolver {
         if scopes.last?[token.lexeme] != nil {
             Lox.error(
                 token: token,
-                message: "Already a variable with this same in this scope."
+                message: "Already a variable with this name in this scope."
             )
         }
         scopes[scopes.count - 1][token.lexeme] = false
