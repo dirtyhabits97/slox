@@ -107,7 +107,7 @@ private extension Parser {
             body = .block([body, .expression(increment)])
         }
         // put the body inside a while loop
-        body = .while(condition: condition ?? .literal(bool: true), body: body)
+        body = .while(condition: condition ?? .literal(.bool(true)), body: body)
         // if there was an initializer, we move it BEFORE the while loop
         if let initializer = initializer {
             body = .block([initializer, body])
