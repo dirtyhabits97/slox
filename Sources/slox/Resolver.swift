@@ -26,66 +26,68 @@ final class Resolver {
     }
 }
 
+// MARK: - Statements
+
 private extension Resolver {
 
     func resolve(_ statement: Statement) {
-        switch statement {
-        case .block(let statements):
-            resolveBlockStatement(statements)
-        case .variable(name: let name, initializer: let initializer):
-            resolveVarStatement(name, initializer)
-        case .function(name: let name, params: let params, body: let body):
-            resolveFunctionStatement(name, params, body)
-        case .expression(let expr), .print(let expr):
-            resolve(expr)
-        case .if(condition: let condition, then: let thenStatement, else: let elseStatement):
-            resolveIfStatement(condition, thenStatement: thenStatement, elseStatement: elseStatement)
-        case .while(condition: let condition, body: let body):
-            resolveWhileStatement(condition, body)
-        case .return(keyword: let keyword, value: let value):
-            resolveReturnStatement(keyword, value)
-        case .class(name: let name, methods: _):
-            resolveClassStatement(name)
+        do {
+            switch statement {
+            case .block(let statements):
+                try visitBlockStatement(statements)
+            case .class(name: let name, methods: let methods):
+                try visitClassStatement(name, methods)
+            case .expression(let expr):
+                try visitExpressionStatement(expr)
+            case .function(name: let name, params: let params, body: let body):
+                try visitFunctionStatement(name, params, body)
+            case .if(condition: let condition, then: let thenBranch, else: let elseBranch):
+                try visitIfStatement(condition, thenBranch, elseBranch)
+            case .print(let expr):
+                try visitPrintStatement(expr)
+            case .return(keyword: let keyword, value: let value):
+                try visitReturnStatement(keyword, value)
+            case .variable(name: let name, initializer: let initializer):
+                try visitVariableStatement(name, initializer)
+            case .while(condition: let condition, body: let body):
+                try visitWhileStatement(condition, body)
+            }
+        } catch {
+            // fail silently
         }
+
+    }
+}
+
+extension Resolver: StatementVisitor {
+
+    func visitBlockStatement(
+        _ statements: [Statement]
+    ) throws {
+        beginScope()
+        resolve(statements)
+        endScope()
     }
 
-    func resolveClassStatement(_ name: Token) {
+    func visitClassStatement(
+        _ name: Token,
+        _ methods: [Statement]
+    ) throws {
         declare(name)
         define(name)
     }
 
-    func resolveReturnStatement(_ keyword: Token, _ value: Expression) {
-        if currentFunction == .none {
-            Lox.error(token: keyword, message: "Can't return from top-level code.")
-        }
-        resolve(value)
+    func visitExpressionStatement(
+        _ expr: Expression
+    ) throws {
+        resolve(expr)
     }
 
-    func resolveWhileStatement(
-        _ condition: Expression,
-        _ body: Statement
-    ) {
-        resolve(condition)
-        resolve(body)
-    }
-
-    func resolveIfStatement(
-        _ condition: Expression,
-        thenStatement: Statement,
-        elseStatement: Statement?
-    ) {
-        resolve(condition)
-        resolve(thenStatement)
-        if let elseStatement = elseStatement {
-            resolve(elseStatement)
-        }
-    }
-
-    func resolveFunctionStatement(
+    func visitFunctionStatement(
         _ name: Token,
         _ params: [Token],
         _ body: [Statement]
-    ) {
+    ) throws {
         declare(name)
         define(name)
         // TODO: consider moving this to another function
@@ -101,16 +103,49 @@ private extension Resolver {
         endScope()
     }
 
-    func resolveBlockStatement(_ stmts: [Statement]) {
-        beginScope()
-        resolve(stmts)
-        endScope()
+    func visitIfStatement(
+        _ condition: Expression,
+        _ thenBranch: Statement,
+        _ elseBranch: Statement?
+    ) throws {
+        resolve(condition)
+        resolve(thenBranch)
+        if let elseBranch = elseBranch {
+            resolve(elseBranch)
+        }
     }
 
-    func resolveVarStatement(_ name: Token, _ initializer: Expression) {
+    func visitPrintStatement(
+        _ expr: Expression
+    ) throws {
+        resolve(expr)
+    }
+
+    func visitReturnStatement(
+        _ keyword: Token,
+        _ value: Expression
+    ) throws {
+        if currentFunction == .none {
+            Lox.error(token: keyword, message: "Can't return from top-level code.")
+        }
+        resolve(value)
+    }
+
+    func visitVariableStatement(
+        _ name: Token,
+        _ initializer: Expression
+    ) throws {
         declare(name)
         resolve(initializer)
         define(name)
+    }
+
+    func visitWhileStatement(
+        _ condition: Expression,
+        _ body: Statement
+    ) throws {
+        resolve(condition)
+        resolve(body)
     }
 }
 
