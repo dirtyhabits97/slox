@@ -34,38 +34,46 @@ final class Interpreter {
     }
 }
 
+// MARK: - Statements
+
 internal extension Interpreter {
 
     @discardableResult
     func execute(_ statement: Statement) throws -> RuntimeValue {
         switch statement {
-        case .expression(let expr):
-            return try evaluate(expr)
-        case .print(let expr):
-            let value = try evaluate(expr)
-            print(value)
-            return value
-        case .variable(name: let name, initializer: let initializer):
-            return try executeVarStatement(name, initializer)
-        case .block(let statements):
-            return try executeBlockStatement(
-                statements,
-                env: Environment(enclosing: environment)
-            )
-        case .if(condition: let condition, then: let then, else: let `else`):
-            return try executeIfStatement(condition, then, `else`)
-        case .while(condition: let condition, body: let body):
-            return try executeWhileStatement(condition, body)
-        case .function(name: let name, params: let params, body: let body):
-            return try executeFunctionStatement(name, params, body)
-        case .return(keyword: let keyword, value: let value):
-            return try executeReturnStatement(keyword, value)
+        case .block(let stmts):
+            return try visitBlockStatement(stmts)
         case .class(name: let name, methods: let methods):
-            return try executeClassStatement(name, methods)
+            return try visitClassStatement(name, methods)
+        case .expression(let expr):
+            return try visitExpressionStatement(expr)
+        case .function(name: let name, params: let params, body: let body):
+            return try visitFunctionStatement(name, params, body)
+        case .if(condition: let condition, then: let then, else: let `else`):
+            return try visitIfStatement(condition, then, `else`)
+        case .print(let expr):
+            return try visitPrintStatement(expr)
+        case .return(keyword: let keyword, value: let value):
+            return try visitReturnStatement(keyword, value)
+        case .variable(name: let name, initializer: let initializer):
+            return try visitVariableStatement(name, initializer)
+        case .while(condition: let condition, body: let body):
+            return try visitWhileStatement(condition, body)
         }
     }
+}
 
-    func executeClassStatement(
+extension Interpreter: StatementVisitor {
+
+    typealias ReturnValue = RuntimeValue
+
+    func visitBlockStatement(
+        _ statements: [Statement]
+    ) throws -> RuntimeValue {
+        try executeBlockStatement(statements, env: Environment(enclosing: environment))
+    }
+
+    func visitClassStatement(
         _ name: Token,
         _ methods: [Statement]
     ) throws -> RuntimeValue {
@@ -75,18 +83,17 @@ internal extension Interpreter {
         return .none
     }
 
-    func executeReturnStatement(
-        _ keyword: Token,
-        _ value: Expression
+    func visitExpressionStatement(
+        _ expr: Expression
     ) throws -> RuntimeValue {
-        throw Return(value: try evaluate(value))
+        try evaluate(expr)
     }
 
-    func executeFunctionStatement(
+    func visitFunctionStatement(
         _ name: Token,
         _ params: [Token],
         _ body: [Statement]
-    ) throws -> RuntimeValue {
+    ) throws -> ReturnValue {
         let function = Function(
             name: name,
             params: params,
@@ -97,17 +104,7 @@ internal extension Interpreter {
         return .none
     }
 
-    func executeWhileStatement(
-        _ condition: Expression,
-        _ body: Statement
-    ) throws -> RuntimeValue {
-        while try evaluate(condition).isTruthy {
-            try execute(body)
-        }
-        return .none
-    }
-
-    func executeIfStatement(
+    func visitIfStatement(
         _ condition: Expression,
         _ thenBranch: Statement,
         _ elseBranch: Statement?
@@ -120,28 +117,56 @@ internal extension Interpreter {
         return .none
     }
 
+    func visitPrintStatement(
+        _ expr: Expression
+    ) throws -> RuntimeValue {
+        let value = try evaluate(expr)
+        print(value)
+        return value
+    }
+
+    func visitReturnStatement(
+        _ keyword: Token,
+        _ value: Expression
+    ) throws -> RuntimeValue {
+        throw Return(value: try evaluate(value))
+    }
+
+    func visitVariableStatement(
+        _ name: Token,
+        _ initializer: Expression
+    ) throws -> RuntimeValue {
+        let value = try evaluate(initializer)
+        environment.define(name.lexeme, value: value)
+        return value
+    }
+
+    func visitWhileStatement(
+        _ condition: Expression,
+        _ body: Statement
+    ) throws -> RuntimeValue {
+        while try evaluate(condition).isTruthy {
+            try execute(body)
+        }
+        return .none
+    }
+}
+
+private extension Interpreter {
+
     func executeBlockStatement(
         _ statements: [Statement],
         env environment: Environment
     ) throws -> RuntimeValue {
         let previous = self.environment
         defer { self.environment = previous }
-        
-        do {
-            self.environment = environment
 
-            for stmt in statements {
-                try execute(stmt)
-            }
+        self.environment = environment
+        for stmt in statements {
+            try execute(stmt)
         }
-        // TODO: this method shouldn't return
-        return .none
-    }
 
-    func executeVarStatement(_ name: Token, _ initializer: Expression) throws -> RuntimeValue {
-        let value = try evaluate(initializer)
-        environment.define(name.lexeme, value: value)
-        return value
+        return .none
     }
 }
 

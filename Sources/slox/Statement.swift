@@ -24,11 +24,13 @@ protocol StatementVisitor {
 
     associatedtype ReturnValue
 
-    func visitBlockStatement(_ statements: [Statement]) -> ReturnValue
-    func visitExpressionStatement(_ expr: Expression) -> ReturnValue
-    func visitIfStatement(_ condition: Expression, _ then: Statement, _ else: Statement?) -> ReturnValue
-    func visitPrintStatement(_ expr: Expression) -> ReturnValue
-    func visitReturnStatement(_ keyword: Token, _ value: Expression) -> ReturnValue
-    func visitVariableStatement(_ name: Token, _ initializer: Expression) -> ReturnValue
-    func visitWhileStatement(_ condition: Expression, _ body: Statement) -> ReturnValue
+    func visitBlockStatement(_ statements: [Statement]) throws -> ReturnValue
+    func visitClassStatement(_ name: Token, _ methods: [Statement]) throws -> ReturnValue
+    func visitExpressionStatement(_ expr: Expression) throws -> ReturnValue
+    func visitFunctionStatement(_ name: Token, _ params: [Token], _ body: [Statement]) throws -> ReturnValue
+    func visitIfStatement(_ condition: Expression, _ thenBranch: Statement, _ elseBranch: Statement?) throws -> ReturnValue
+    func visitPrintStatement(_ expr: Expression) throws -> ReturnValue
+    func visitReturnStatement(_ keyword: Token, _ value: Expression) throws -> ReturnValue
+    func visitVariableStatement(_ name: Token, _ initializer: Expression) throws -> ReturnValue
+    func visitWhileStatement(_ condition: Expression, _ body: Statement) throws -> ReturnValue
 }
