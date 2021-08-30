@@ -178,37 +178,48 @@ private extension Interpreter {
 
     func evaluate(_ expression: Expression) throws -> RuntimeValue {
         switch expression {
-        case .literal(let lit):
-            return evaluateLiteral(lit)
-        case .grouping(let group):
-            return try evaluate(group)
-        case .unary(operator: let op, rhs: let rhs):
-            return try evaluateUnary(op, expr: rhs)
-        case .binary(lhs: let lhs, operator: let op, rhs: let rhs):
-            return try evaluateBinary(lhs, operation: op, rhs)
-        case .empty:
-            return .none
-        case .variable(let name):
-            return try evaluateVariable(name, expression)
         case .assign(name: let name, value: let value):
-            return try evaluateAssignment(name, value, expression)
-        case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
-            return try evaluateLogic(lhs, op, rhs)
+            return try evaluateAssignmentExpression(name, value, expression)
+        case .binary(lhs: let lhs, operator: let op, rhs: let rhs):
+            return try visitBinaryExpression(lhs, op, rhs)
         case .call(callee: let callee, paren: let paren, arguments: let args):
-            return try evaluateCall(callee, paren, args)
+            return try visitCallExpression(callee, paren, args)
+        case .empty:
+            return try visitEmptyExpression()
+        case .grouping(let group):
+            return try visitGroupExpression(group)
+        case .literal(let lit):
+            return try visitLiteralExpression(lit)
+        case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
+            return try visitLogicalExpression(lhs, op, rhs)
+        case .unary(operator: let op, rhs: let rhs):
+            return try visitUnaryExpression(op, rhs)
+        case .variable(let name):
+            return try visitVariableExpression(name, expression)
         }
     }
+}
 
-    func evaluateVariable(
+extension Interpreter: ExpressionVisitor {
+
+    func visitAssignExpression(
         _ name: Token,
-        _ expr: Expression
+        _ value: Expression
     ) throws -> RuntimeValue {
-        try lookUpVariable(name, expr)
+        fatalError("Not implemented. Refer to `evaluateAssignmentExpression(_:_:_:)`.")
     }
 
-    func evaluateCall(
-        _ callee: Expression, 
-        _ paren: Token, 
+    func visitBinaryExpression(
+        _ lhs: Expression,
+        _ operation: Token,
+        _ rhs: Expression
+    ) throws -> RuntimeValue {
+        try evaluateBinary(lhs, operation, rhs)
+    }
+
+    func visitCallExpression(
+        _ callee: Expression,
+        _ paren: Token,
         _ arguments: [Expression]
     ) throws -> RuntimeValue {
         let callee = try evaluate(callee)
@@ -232,7 +243,28 @@ private extension Interpreter {
         return try function.call(interpreter: self, arguments: args)
     }
 
-    func evaluateLogic(
+    func visitGroupExpression(
+        _ expr: Expression
+    ) throws -> ReturnValue {
+        try evaluate(expr)
+    }
+
+    func visitLiteralExpression(
+        _ literal: Literal
+    ) throws -> ReturnValue {
+        switch literal {
+        case .string(let str):
+            return .string(str)
+        case .number(let num):
+            return .number(num)
+        case .bool(let bool):
+            return .bool(bool)
+        case .none:
+            return .none
+        }
+    }
+
+    func visitLogicalExpression(
         _ lhs: Expression,
         _ operation: Token,
         _ rhs: Expression
@@ -250,7 +282,38 @@ private extension Interpreter {
         return try evaluate(rhs)
     }
 
-    func evaluateAssignment(
+    func visitUnaryExpression(
+        _ operation: Token,
+        _ rhs: Expression
+    ) throws -> RuntimeValue {
+        let value = try evaluate(rhs)
+        switch operation.type {
+        case .BANG:
+            return .bool(!value.isTruthy)
+        case .MINUS:
+            guard let number = value.number else {
+                throw RuntimeError(token: operation, message: "Operand must be a number.")
+            }
+            return .number(-number)
+        default:
+            return .none
+        }
+    }
+
+    func visitVariableExpression(
+        _ name: Token
+    ) throws -> RuntimeValue {
+        fatalError("Not implemented. Refer to `evaluateVariableExpression(_:_:)`.")
+    }
+
+    func visitEmptyExpression() throws -> RuntimeValue {
+        .none
+    }
+}
+
+private extension Interpreter {
+
+    func evaluateAssignmentExpression(
         _ name: Token,
         _ value: Expression,
         _ expr: Expression
@@ -264,37 +327,11 @@ private extension Interpreter {
         return value
     }
 
-    func evaluateLiteral(_ literal: Literal?) -> RuntimeValue {
-        guard let literal = literal else { return .none }
-
-        switch literal {
-        case .string(let str):
-            return .string(str)
-        case .number(let num):
-            return .number(num)
-        case .bool(let bool):
-            return .bool(bool)
-        }
-    }
-
-    func evaluateUnary(_ operation: Token, expr: Expression) throws -> RuntimeValue {
-        let value = try evaluate(expr)
-
-        switch operation.type {
-        case .BANG:
-            return .bool(!value.isTruthy)
-        case .MINUS:
-            guard let number = value.number else {
-                throw RuntimeError(token: operation, message: "Operand must be a number.")
-            }
-            return .number(-number)
-        // TODO: finish implementing this
-        default:
-            return .none
-        }
-    }
-
-    func evaluateBinary(_ lhs: Expression, operation: Token, _ rhs: Expression) throws -> RuntimeValue {
+    func evaluateBinary(
+        _ lhs: Expression,
+        _ operation: Token,
+        _ rhs: Expression
+    ) throws -> RuntimeValue {
         let lhs = try evaluate(lhs)
         let rhs = try evaluate(rhs)
 
@@ -303,16 +340,16 @@ private extension Interpreter {
         // MARK: Comparison operations
         case .GREATER:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateComparison(lhs, operation: >, rhs)
+            return evaluateComparison(lhs, >, rhs)
         case .GREATER_EQUAL:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateComparison(lhs, operation: >=, rhs)
+            return evaluateComparison(lhs, >=, rhs)
         case .LESS:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateComparison(lhs, operation: <, rhs)
+            return evaluateComparison(lhs, <, rhs)
         case .LESS_EQUAL:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateComparison(lhs, operation: <=, rhs)
+            return evaluateComparison(lhs, <=, rhs)
 
         // MARK: Equality operations
         case .BANG_EQUAL:
@@ -323,13 +360,13 @@ private extension Interpreter {
         // MARK: Arithmetic operations
         case .MINUS:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateMath(lhs, operation: -, rhs)
+            return evaluateMath(lhs, -, rhs)
         case .SLASH:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateMath(lhs, operation: /, rhs)
+            return evaluateMath(lhs, /, rhs)
         case .STAR:
             try checkNumberOperands(operation, lhs, rhs)
-            return evaluateMath(lhs, operation: *, rhs)
+            return evaluateMath(lhs, *, rhs)
         case .PLUS:
             switch (lhs, rhs) {
             case (.number(let l), .number(let r)):
@@ -358,9 +395,19 @@ private extension Interpreter {
         }
     }
 
+    func visitVariableExpression(
+        _ name: Token,
+        _ expr: Expression
+    ) throws -> RuntimeValue {
+        try lookUpVariable(name, expr)
+    }
+}
+
+private extension Interpreter {
+
     func evaluateMath(
         _ lhs: RuntimeValue,
-        operation: (Double, Double) -> Double,
+        _ operation: (Double, Double) -> Double,
         _ rhs: RuntimeValue
     ) -> RuntimeValue {
         guard let l = lhs.number, let r = rhs.number else {
@@ -371,7 +418,7 @@ private extension Interpreter {
 
     func evaluateComparison(
         _ lhs: RuntimeValue,
-        operation: (Double, Double) -> Bool,
+        _ operation: (Double, Double) -> Bool,
         _ rhs: RuntimeValue
     ) -> RuntimeValue {
         guard let l = lhs.number, let r = rhs.number else {
@@ -379,9 +426,6 @@ private extension Interpreter {
         }
         return .bool(operation(l, r))
     }
-}
-
-private extension Interpreter {
 
     func evaluateEquality(
         _ operation: Token,
@@ -411,7 +455,10 @@ private extension Interpreter {
 
 private extension Interpreter {
 
-    func checkNumberOperand(_ operation: Token, operand: RuntimeValue) throws {
+    func checkNumberOperand(
+        _ operation: Token,
+        operand: RuntimeValue
+    ) throws {
         guard case .number(_) = operand else {
             throw RuntimeError(token: operation, message: "Operand must be a number.")
         }
