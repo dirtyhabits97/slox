@@ -12,3 +12,15 @@ struct Class: CustomStringConvertible {
     let name: String
     var description: String { name }
 }
+
+extension Class: Callable {
+
+    var arity: Int { 0 }
+
+    func call(
+        interpreter: Interpreter,
+        arguments: [RuntimeValue]
+    ) throws -> RuntimeValue {
+        .instance(Instance(klass: self))
+    }
+}

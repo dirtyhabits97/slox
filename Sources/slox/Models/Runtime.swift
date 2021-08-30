@@ -15,6 +15,7 @@ enum RuntimeValue {
     case none
     case callable(Callable)
     case `class`(Class)
+    case instance(Instance)
 
     var number: Double? {
         switch self {
@@ -56,6 +57,8 @@ extension RuntimeValue: CustomStringConvertible {
             return call.description
         case .class(let klass):
             return klass.description
+        case .instance(let instance):
+            return instance.description
         }
     }
 }
