@@ -281,7 +281,7 @@ private extension Resolver {
 private extension Resolver {
 
     func beginScope() {
-
+        scopes.append([:])
     }
 
     func endScope() {
