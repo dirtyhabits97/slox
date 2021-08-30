@@ -149,57 +149,126 @@ extension Resolver: StatementVisitor {
     }
 }
 
+// MARK: - Expressions
+
 private extension Resolver {
 
     func resolve(_ expression: Expression) {
-        switch expression {
-        case .variable(let token):
-            resolveVarExpression(token, expression)
-        case .assign(name: let name, value: let value):
-            resolveAssignExpression(name, value, expression)
-        case .call(callee: let callee, paren: _, arguments: let args):
-            resolveCallExpression(callee, args)
-        case .binary(lhs: let lhs, operator: _, rhs: let rhs):
-            resolveBinaryExpression(lhs, rhs)
-        case .literal, .empty:
-            break // do nothing
-        case .logical(lhs: let lhs, operator: _, rhs: let rhs):
-            resolveLogicalExpression(lhs, rhs)
-        case .unary(operator: _, rhs: let expr), .grouping(let expr):
-            resolve(expr)
+        do {
+            switch expression {
+            case .assign(name: let name, value: let value):
+                resolveAssignExpression(name, value, expression)
+            case .binary(lhs: let lhs, operator: let op, rhs: let rhs):
+                try visitBinaryExpression(lhs, op, rhs)
+            case .call(callee: let callee, paren: let paren, arguments: let args):
+                try visitCallExpression(callee, paren, args)
+            case .empty:
+                try visitEmptyExpression()
+            case .grouping(let expr):
+                try visitGroupExpression(expr)
+            case .literal(let lit):
+                try visitLiteralExpression(lit)
+            case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
+                try visitLogicalExpression(lhs, op, rhs)
+            case .unary(operator: let op, rhs: let rhs):
+                try visitUnaryExpression(op, rhs)
+            case .variable(let name):
+                resolveVariableExpression(name, expression)
+            }
+        } catch {
+            // fail silently
         }
     }
 
-    func resolveUnaryExpression(_ expr: Expression) {
-        resolve(expr)
-    }
-
-    func resolveLogicalExpression(_ lhs: Expression, _ rhs: Expression) {
-        resolve(lhs)
-        resolve(rhs)
-    }
-
-    func resolveBinaryExpression(_ lhs: Expression, _ rhs: Expression) {
-        resolve(lhs)
-        resolve(rhs)
-    }
-
-    func resolveCallExpression(_ callee: Expression, _ arguments: [Expression]) {
-        resolve(callee)
-        arguments.forEach(resolve(_:))
-    }
-
-    func resolveAssignExpression(_ name: Token, _ value: Expression, _ expr: Expression) {
+    func resolveAssignExpression(
+        _ name: Token,
+        _ value: Expression,
+        _ expr: Expression
+    ) {
         resolve(value)
         resolveLocal(expr, name: name)
     }
 
-    func resolveVarExpression(_ name: Token, _ expr: Expression) {
+    func resolveVariableExpression(
+        _ name: Token,
+        _ expr: Expression
+    ) {
         if !scopes.isEmpty && scopes.last?[name.lexeme] == false {
             Lox.error(token: name, message: "Can't read local variable in its own initiazlier.")
         }
         resolveLocal(expr, name: name)
     }
+}
+
+extension Resolver: ExpressionVisitor {
+
+    func visitAssignExpression(
+        _ name: Token,
+        _ value: Expression
+    ) throws {
+        fatalError("Not implemented. Refer to `resolveAssignExpression(_:_:_:)`.")
+    }
+
+    func visitBinaryExpression(
+        _ lhs: Expression,
+        _ operation: Token,
+        _ rhs: Expression
+    ) throws {
+        resolve(lhs)
+        resolve(rhs)
+    }
+
+    func visitCallExpression(
+        _ callee: Expression,
+        _ paren: Token,
+        _ arguments: [Expression]
+    ) throws {
+        resolve(callee)
+        arguments.forEach(resolve(_:))
+    }
+
+    func visitEmptyExpression() throws -> () {
+        // do nothing
+    }
+
+    func visitGroupExpression(
+        _ expr: Expression
+    ) throws {
+        resolve(expr)
+    }
+
+    func visitLiteralExpression(
+        _ literal: Literal
+    ) throws {
+        // do nothing
+    }
+
+    func visitLogicalExpression(
+        _ lhs: Expression,
+        _ operation: Token,
+        _ rhs: Expression
+    ) throws {
+        resolve(lhs)
+        resolve(rhs)
+    }
+
+    func visitUnaryExpression(
+        _ operation: Token,
+        _ rhs: Expression
+    ) throws {
+        resolve(rhs)
+    }
+
+    func visitVariableExpression(
+        _ name: Token
+    ) throws -> () {
+        fatalError("Not implemented. Refer to `resolveVariableExpression(_:_:)`.")
+    }
+}
+
+// MARK: - Helpers
+
+private extension Resolver {
 
     func resolveLocal(_ expr: Expression, name: Token) {
         for (idx, scope) in scopes.lazy.enumerated().reversed() where scope[name.lexeme] != nil {

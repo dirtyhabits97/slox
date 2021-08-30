@@ -27,10 +27,10 @@ protocol ExpressionVisitor {
     func visitAssignExpression(_ name: Token, _ value: Expression) throws -> ReturnValue
     func visitBinaryExpression(_ lhs: Expression, _ operation: Token, _ rhs: Expression) throws -> ReturnValue
     func visitCallExpression(_ callee: Expression, _ paren: Token, _ arguments: [Expression]) throws -> ReturnValue
+    func visitEmptyExpression() throws -> ReturnValue
     func visitGroupExpression(_ expr: Expression) throws -> ReturnValue
     func visitLiteralExpression(_ literal: Literal) throws -> ReturnValue
     func visitLogicalExpression(_ lhs: Expression, _ operation: Token, _ rhs: Expression) throws -> ReturnValue
     func visitUnaryExpression(_ operation: Token, _ rhs: Expression) throws -> ReturnValue
     func visitVariableExpression(_ name: Token) throws -> ReturnValue
-    func visitEmptyExpression() throws -> ReturnValue
 }
