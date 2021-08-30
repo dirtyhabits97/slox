@@ -60,7 +60,19 @@ internal extension Interpreter {
             return try executeFunctionStatement(name, params, body)
         case .return(keyword: let keyword, value: let value):
             return try executeReturnStatement(keyword, value)
+        case .class(name: let name, methods: let methods):
+            return try executeClassStatement(name, methods)
         }
+    }
+
+    func executeClassStatement(
+        _ name: Token,
+        _ methods: [Statement]
+    ) throws -> RuntimeValue {
+        environment.define(name.lexeme, value: .none)
+        let klass = Class(name: name.lexeme)
+        try environment.assign(.class(klass), to: name)
+        return .none
     }
 
     func executeReturnStatement(
@@ -382,6 +394,8 @@ extension RuntimeValue: CustomStringConvertible {
             return String(bool)
         case .callable(let call):
             return call.description
+        case .class(let klass):
+            return klass.description
         }
     }
 }
@@ -425,4 +439,13 @@ private extension Interpreter {
         }
         return try globals.get(name)
     }
+}
+
+// MARK: - Classes
+// TODO: Move this to anothe file
+
+struct Class: CustomStringConvertible {
+
+    let name: String
+    var description: String { name }
 }

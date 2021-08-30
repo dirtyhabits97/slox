@@ -53,6 +53,8 @@ extension ASTPrinter: StatementVisitor {
             return visitFunctionStatement(name, params, body)
         case .return(keyword: let keyword, value: let value):
             return visitReturnStatement(keyword, value)
+        case .class(name: _, methods: _):
+            return "TODO: set description for class."
         }
     }
 

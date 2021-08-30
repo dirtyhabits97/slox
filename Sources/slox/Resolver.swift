@@ -44,7 +44,14 @@ private extension Resolver {
             resolveWhileStatement(condition, body)
         case .return(keyword: let keyword, value: let value):
             resolveReturnStatement(keyword, value)
+        case .class(name: let name, methods: _):
+            resolveClassStatement(name)
         }
+    }
+
+    func resolveClassStatement(_ name: Token) {
+        declare(name)
+        define(name)
     }
 
     func resolveReturnStatement(_ keyword: Token, _ value: Expression) {

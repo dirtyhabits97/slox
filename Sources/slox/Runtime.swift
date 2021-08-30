@@ -14,6 +14,7 @@ enum RuntimeValue {
     case bool(Bool)
     case none
     case callable(Callable)
+    case `class`(Class)
 
     var number: Double? {
         switch self {
