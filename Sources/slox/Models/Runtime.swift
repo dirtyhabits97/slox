@@ -39,6 +39,17 @@ enum RuntimeValue {
             return true
         }
     }
+
+    var asCallable: Callable? {
+        switch self {
+        case .callable(let callable):
+            return callable
+        case .class(let callable):
+            return callable
+        default:
+            return nil
+        }
+    }
 }
 
 extension RuntimeValue: CustomStringConvertible {

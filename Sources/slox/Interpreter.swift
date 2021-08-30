@@ -232,17 +232,17 @@ extension Interpreter: ExpressionVisitor {
         }
 
         // Validate is a function
-        guard case .callable(let function) = callee else {
+        guard let callable = callee.asCallable else {
             throw RuntimeError(token: paren, message: "Can only call functions and classes.")
         }
 
         // Validate arity
-        guard args.count == function.arity else {
-            let message = "Expected \(function.arity) arguments but got \(args.count)."
+        guard args.count == callable.arity else {
+            let message = "Expected \(callable.arity) arguments but got \(args.count)."
             throw RuntimeError(token: paren, message: message)
         }
 
-        return try function.call(interpreter: self, arguments: args)
+        return try callable.call(interpreter: self, arguments: args)
     }
 
     func visitGroupExpression(
