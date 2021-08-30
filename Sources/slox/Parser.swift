@@ -367,16 +367,16 @@ private extension Parser {
     }
 
     func primary() throws -> Expression {
-        if match(.FALSE) { return .literal(bool: false) }
-        if match(.TRUE) { return .literal(bool: true) }
-        if match(.NIL) { return .literal(nil) }
+        if match(.FALSE) { return .literal(.bool(false)) }
+        if match(.TRUE) { return .literal(.bool(true)) }
+        if match(.NIL) { return .literal(.none) }
 
         if match(.NUMBER, .STRING) {
             // when a match is found, the idx advances by one
             // BEFORE returning
             // so we get the previous one, because that's the token
             // we just validated
-            return .literal(previous().literal)
+            return .literal(previous().literal ?? .none)
         }
 
         if match(.IDENTIFIER) {

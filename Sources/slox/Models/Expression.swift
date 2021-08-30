@@ -18,13 +18,6 @@ enum Expression: Hashable {
     indirect case unary(operator: Token, rhs: Expression)
     case variable(Token)
     case empty
-
-    static func literal(bool: Bool?) -> Expression {
-        if let bool = bool {
-            return .literal(.bool(bool))
-        }
-        return .literal(.none)
-    }
 }
 
 protocol ExpressionVisitor {

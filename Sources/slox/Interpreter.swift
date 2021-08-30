@@ -154,7 +154,9 @@ extension Interpreter: StatementVisitor {
     }
 }
 
-private extension Interpreter {
+// Helper for callables to execute blocks
+// given an environment
+internal extension Interpreter {
 
     func executeBlockStatement(
         _ statements: [Statement],
