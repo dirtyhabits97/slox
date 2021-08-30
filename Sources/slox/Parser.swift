@@ -35,6 +35,9 @@ private extension Parser {
 
     func declaration() throws -> Statement {
         do {
+            if match(.CLASS) {
+                return try classDeclaration()
+            }
             if match(.FUN) {
                 return try function(kind: "function")
             }
@@ -210,6 +213,19 @@ private extension Parser {
 
         try consume(.SEMICOLON, message: "Expect ';' after variable declaration.")
         return .variable(name: name, initializer: initializer)
+    }
+
+    func classDeclaration() throws -> Statement {
+        let name = try consume(.IDENTIFIER, message: "Expect class name.")
+        try consume(.LEFT_BRACE, message: "Expect '{' before class body.")
+
+        var methods: [Statement] = []
+        while !check(.RIGHT_BRACE) && !isAtEnd {
+            methods.append(try function(kind: "method"))
+        }
+
+        try consume(.RIGHT_BRACE, message: "Expect '}' after class body.")
+        return .class(name: name, methods: methods)
     }
 }
 

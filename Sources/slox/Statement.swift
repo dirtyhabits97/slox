@@ -10,6 +10,7 @@ import Foundation
 enum Statement {
 
     indirect case block([Statement])
+    case `class`(name: Token, methods: [Statement])
     case expression(Expression)
     indirect case function(name: Token, params: [Token], body: [Statement])
     indirect case `if`(condition: Expression, then: Statement, else: Statement?)
