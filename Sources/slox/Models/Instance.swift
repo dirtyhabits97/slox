@@ -25,7 +25,7 @@ final class Instance: CustomStringConvertible {
             return value
         }
         if let method = klass.methods[name.lexeme] {
-            return .callable(method)
+            return method.bind(instance: self)
         }
         throw RuntimeError(token: name, message: "Undefined property '\(name.lexeme)'.")
     }

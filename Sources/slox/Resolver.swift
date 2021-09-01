@@ -94,9 +94,14 @@ extension Resolver: StatementVisitor {
         declare(name)
         define(name)
 
+        // declare "this"
+        beginScope()
+        scopes[scopes.count - 1]["this"] = true
+
         for case let .function(functionName, params, body) in methods {
             resolveFunction(functionName, params, body, .method)
         }
+        endScope()
     }
 
     func visitExpressionStatement(
@@ -186,6 +191,8 @@ private extension Resolver {
                 try visitLogicalExpression(lhs, op, rhs)
             case .set(object: let obj, name: let name, value: let value):
                 try visitSetExpression(obj, name, value)
+            case .this(keyword: let keyword):
+                resolveThisExpression(keyword, expression)
             case .unary(operator: let op, rhs: let rhs):
                 try visitUnaryExpression(op, rhs)
             case .variable(let name):
@@ -213,6 +220,13 @@ private extension Resolver {
             Lox.error(token: name, message: "Can't read local variable in its own initiazlier.")
         }
         resolveLocal(expr, name: name)
+    }
+
+    func resolveThisExpression(
+        _ keyword: Token,
+        _ expr: Expression
+    ) {
+        resolveLocal(expr, name: keyword)
     }
 }
 
@@ -282,6 +296,12 @@ extension Resolver: ExpressionVisitor {
     ) throws -> () {
         resolve(value)
         resolve(object)
+    }
+
+    func visitThisExpression(
+        _ keyword: Token
+    ) throws -> () {
+        fatalError("Not implemented. Refer to `resolveThisExpression(_:_:)`.")
     }
 
     func visitUnaryExpression(

@@ -57,4 +57,13 @@ struct Function: Callable {
             return returnValue.value
         }
     }
+
+    func bind(instance: Instance) -> RuntimeValue {
+        let environment = Environment(enclosing: environment)
+        environment.define("this", value: .instance(instance))
+        return .callable(Function(
+            name: name, params: params,
+            body: body, environment: environment
+        ))
+    }
 }

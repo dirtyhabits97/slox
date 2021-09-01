@@ -387,6 +387,10 @@ private extension Parser {
             return .literal(previous().literal ?? .none)
         }
 
+        if match(.THIS) {
+            return .this(keyword: previous())
+        }
+
         if match(.IDENTIFIER) {
             return .variable(previous())
         }

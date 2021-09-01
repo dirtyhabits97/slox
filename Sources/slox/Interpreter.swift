@@ -208,10 +208,12 @@ private extension Interpreter {
             return try visitLogicalExpression(lhs, op, rhs)
         case .set(object: let obj, name: let name, value: let value):
             return try visitSetExpression(obj, name, value)
+        case .this(keyword: let keyword):
+            return try evaluateThisExpression(keyword, expression)
         case .unary(operator: let op, rhs: let rhs):
             return try visitUnaryExpression(op, rhs)
         case .variable(let name):
-            return try visitVariableExpression(name, expression)
+            return try evaluateVariableExpression(name, expression)
         }
     }
 }
@@ -324,6 +326,12 @@ extension Interpreter: ExpressionVisitor {
         let value = try evaluate(value)
         instance.set(value, for: name)
         return value
+    }
+
+    func visitThisExpression(
+        _ keyword: Token
+    ) throws -> RuntimeValue {
+        fatalError("Not implemented. Refer to `evaluateThisExpression(_:_:)`.")
     }
 
     func visitUnaryExpression(
@@ -439,7 +447,14 @@ private extension Interpreter {
         }
     }
 
-    func visitVariableExpression(
+    func evaluateThisExpression(
+        _ keyword: Token,
+        _ expr: Expression
+    ) throws -> RuntimeValue {
+        try lookUpVariable(keyword, expr)
+    }
+
+    func evaluateVariableExpression(
         _ name: Token,
         _ expr: Expression
     ) throws -> RuntimeValue {
