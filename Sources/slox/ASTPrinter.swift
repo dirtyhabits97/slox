@@ -179,6 +179,8 @@ private extension ASTPrinter {
                 return try visitLiteralExpression(lit)
             case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
                 return try visitLogicalExpression(lhs, op, rhs)
+            case .set(object: let obj, name: let name, value: let value):
+                return try visitSetExpression(obj, name, value)
             case .unary(operator: let op, rhs: let rhs):
                 return try visitUnaryExpression(op, rhs)
             case .variable(let name):
@@ -248,6 +250,14 @@ extension ASTPrinter: ExpressionVisitor {
         _ rhs: Expression
     ) throws -> String {
         try visitBinaryExpression(lhs, operation, rhs)
+    }
+
+    func visitSetExpression(
+        _ object: Expression,
+        _ name: Token,
+        _ value: Expression
+    ) throws -> String {
+        parenthesize("set", elements: object, ".", name, "=", value)
     }
 
     func visitUnaryExpression(

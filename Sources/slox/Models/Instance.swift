@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Instance: CustomStringConvertible {
+final class Instance: CustomStringConvertible {
 
     private let klass: Class
     private var fields: [String: RuntimeValue] = [:]
@@ -25,5 +25,9 @@ struct Instance: CustomStringConvertible {
             throw RuntimeError(token: name, message: "Undefined property '\(name.lexeme)'.")
         }
         return value
+    }
+
+    func set(_ value: RuntimeValue, for name: Token) {
+        fields[name.lexeme] = value
     }
 }

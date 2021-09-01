@@ -172,6 +172,8 @@ private extension Resolver {
                 try visitLiteralExpression(lit)
             case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
                 try visitLogicalExpression(lhs, op, rhs)
+            case .set(object: let obj, name: let name, value: let value):
+                try visitSetExpression(obj, name, value)
             case .unary(operator: let op, rhs: let rhs):
                 try visitUnaryExpression(op, rhs)
             case .variable(let name):
@@ -259,6 +261,15 @@ extension Resolver: ExpressionVisitor {
     ) throws {
         resolve(lhs)
         resolve(rhs)
+    }
+
+    func visitSetExpression(
+        _ object: Expression,
+        _ name: Token,
+        _ value: Expression
+    ) throws -> () {
+        resolve(value)
+        resolve(object)
     }
 
     func visitUnaryExpression(

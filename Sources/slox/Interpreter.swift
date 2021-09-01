@@ -196,6 +196,8 @@ private extension Interpreter {
             return try visitLiteralExpression(lit)
         case .logical(lhs: let lhs, operator: let op, rhs: let rhs):
             return try visitLogicalExpression(lhs, op, rhs)
+        case .set(object: let obj, name: let name, value: let value):
+            return try visitSetExpression(obj, name, value)
         case .unary(operator: let op, rhs: let rhs):
             return try visitUnaryExpression(op, rhs)
         case .variable(let name):
@@ -294,6 +296,24 @@ extension Interpreter: ExpressionVisitor {
         }
 
         return try evaluate(rhs)
+    }
+
+    func visitSetExpression(
+        _ object: Expression,
+        _ name: Token,
+        _ value: Expression
+    ) throws -> RuntimeValue {
+        let object = try evaluate(object)
+
+        guard case .instance(let instance) = object else {
+            throw RuntimeError(
+                token: name,
+                message: "Only instances have fields."
+            )
+        }
+        let value = try evaluate(value)
+        instance.set(value, for: name)
+        return value
     }
 
     func visitUnaryExpression(

@@ -244,6 +244,8 @@ private extension Parser {
 
             if case .variable(let name) = expression {
                 return .assign(name: name, value: value)
+            } else if case .get(let obj, let name) = expression {
+                return .set(object: obj, name: name, value: value)
             }
 
             throw error(token: equals, message: "Invalid assignment target.")
