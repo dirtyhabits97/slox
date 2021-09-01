@@ -10,6 +10,7 @@ import Foundation
 struct Class: CustomStringConvertible {
 
     let name: String
+    let methods: [String: Function]
     var description: String { name }
 }
 

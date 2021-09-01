@@ -10,7 +10,7 @@ import Foundation
 final class Resolver {
 
     private let interpreter: Interpreter
-    private var currentFunction = FunctionStatus.none
+    private var currentFunction = FunctionType.none
     // The scope is a stack
     private var scopes: [[String: Bool]] = []
 
@@ -55,7 +55,25 @@ private extension Resolver {
         } catch {
             // fail silently
         }
+    }
 
+    func resolveFunction(
+        _ name: Token,
+        _ params: [Token],
+        _ body: [Statement],
+        _ type: FunctionType
+    ) {
+        let enclosingFunction = currentFunction
+        currentFunction = type
+        defer { currentFunction = enclosingFunction }
+
+        beginScope()
+        for param in params {
+            declare(param)
+            define(param)
+        }
+        resolve(body)
+        endScope()
     }
 }
 
@@ -75,6 +93,10 @@ extension Resolver: StatementVisitor {
     ) throws {
         declare(name)
         define(name)
+
+        for case let .function(functionName, params, body) in methods {
+            resolveFunction(functionName, params, body, .method)
+        }
     }
 
     func visitExpressionStatement(
@@ -90,17 +112,7 @@ extension Resolver: StatementVisitor {
     ) throws {
         declare(name)
         define(name)
-        // TODO: consider moving this to another function
-        let enclosingFunction = currentFunction
-        currentFunction = .some
-        defer { currentFunction = enclosingFunction }
-        beginScope()
-        for param in params {
-            declare(param)
-            define(param)
-        }
-        resolve(body)
-        endScope()
+        resolveFunction(name, params, body, .function)
     }
 
     func visitIfStatement(
@@ -336,8 +348,9 @@ private extension Resolver {
 
 private extension Resolver {
 
-    enum FunctionStatus {
+    enum FunctionType {
         case none
-        case some
+        case function
+        case method
     }
 }

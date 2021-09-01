@@ -80,7 +80,17 @@ extension Interpreter: StatementVisitor {
         _ methods: [Statement]
     ) throws -> RuntimeValue {
         environment.define(name.lexeme, value: .none)
-        let klass = Class(name: name.lexeme)
+
+        var methodForName: [String: Function] = [:]
+        for case let .function(functionName, params, body) in methods {
+            let function = Function(
+                name: functionName, params: params,
+                body: body, environment: environment
+            )
+            methodForName[functionName.lexeme] = function
+        }
+
+        let klass = Class(name: name.lexeme, methods: methodForName)
         try environment.assign(.class(klass), to: name)
         return .none
     }

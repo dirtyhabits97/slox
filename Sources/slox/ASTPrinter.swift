@@ -84,7 +84,7 @@ extension ASTPrinter: StatementVisitor {
         _ name: Token,
         _ methods: [Statement]
     ) throws -> String {
-        "TODO: set description for class."
+        parenthesize("class", elements: name, methods)
     }
 
     func visitExpressionStatement(
@@ -222,7 +222,7 @@ extension ASTPrinter: ExpressionVisitor {
         _ paren: Token,
         _ arguments: [Expression]
     ) throws -> String {
-        "TODO: provide a description for call expressions."
+        parenthesize("call", elements: callee, arguments)
     }
 
     func visitGetExpression(
@@ -303,10 +303,12 @@ private extension ASTPrinter {
                 str.append(description(for: stmt))
             } else if let token = element as? Token {
                 str.append(description(for: token))
+            } else if let stmts = element as? [Statement] {
+                let desc = stmts.map({ self.description(for: $0) }).joined(separator: " ")
+                str.append(desc)
             } else {
                 str.append(String(describing: element))
             }
-
         }
         str.append(")")
 

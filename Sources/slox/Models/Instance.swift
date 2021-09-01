@@ -21,10 +21,13 @@ final class Instance: CustomStringConvertible {
     }
 
     func get(_ name: Token) throws -> RuntimeValue {
-        guard let value = fields[name.lexeme] else {
-            throw RuntimeError(token: name, message: "Undefined property '\(name.lexeme)'.")
+        if let value = fields[name.lexeme] {
+            return value
         }
-        return value
+        if let method = klass.methods[name.lexeme] {
+            return .callable(method)
+        }
+        throw RuntimeError(token: name, message: "Undefined property '\(name.lexeme)'.")
     }
 
     func set(_ value: RuntimeValue, for name: Token) {
