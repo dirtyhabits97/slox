@@ -340,6 +340,12 @@ private extension Parser {
         while true {
             if match(.LEFT_PAREN) {
                 expr = try finishCall(expr)
+            } else if match(.DOT) {
+                let name = try consume(
+                    .IDENTIFIER,
+                    message: "Expect property name after '.'."
+                )
+                expr = .get(object: expr, name: name)
             } else {
                 break
             }

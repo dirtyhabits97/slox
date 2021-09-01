@@ -171,6 +171,8 @@ private extension ASTPrinter {
                 return try visitCallExpression(callee, paren, args)
             case .empty:
                 return try visitEmptyExpression()
+            case .get(object: let obj, name: let name):
+                return try visitGetExpression(obj, name)
             case .grouping(let expr):
                 return try visitGroupExpression(expr)
             case .literal(let lit):
@@ -190,6 +192,7 @@ private extension ASTPrinter {
 }
 
 extension ASTPrinter: ExpressionVisitor {
+
     func visitAssignExpression(
         _ name: Token,
         _ value: Expression
@@ -218,6 +221,13 @@ extension ASTPrinter: ExpressionVisitor {
         _ arguments: [Expression]
     ) throws -> String {
         "TODO: provide a description for call expressions."
+    }
+
+    func visitGetExpression(
+        _ object: Expression,
+        _ name: Token
+    ) throws -> String {
+        parenthesize("get", elements: object, ".", name)
     }
 
     func visitGroupExpression(

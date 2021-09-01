@@ -188,6 +188,8 @@ private extension Interpreter {
             return try visitCallExpression(callee, paren, args)
         case .empty:
             return try visitEmptyExpression()
+        case .get(object: let obj, name: let name):
+            return try visitGetExpression(obj, name)
         case .grouping(let group):
             return try visitGroupExpression(group)
         case .literal(let lit):
@@ -243,6 +245,16 @@ extension Interpreter: ExpressionVisitor {
         }
 
         return try callable.call(interpreter: self, arguments: args)
+    }
+
+    func visitGetExpression(
+        _ object: Expression,
+        _ name: Token
+    ) throws -> RuntimeValue {
+        guard case .instance(let instance) = try evaluate(object) else {
+            throw RuntimeError(token: name, message: "Only instances have properties.")
+        }
+        return try instance.get(name)
     }
 
     func visitGroupExpression(

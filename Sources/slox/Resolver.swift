@@ -164,6 +164,8 @@ private extension Resolver {
                 try visitCallExpression(callee, paren, args)
             case .empty:
                 try visitEmptyExpression()
+            case .get(object: let obj, name: let name):
+                try visitGetExpression(obj, name)
             case .grouping(let expr):
                 try visitGroupExpression(expr)
             case .literal(let lit):
@@ -229,6 +231,13 @@ extension Resolver: ExpressionVisitor {
 
     func visitEmptyExpression() throws -> () {
         // do nothing
+    }
+
+    func visitGetExpression(
+        _ object: Expression,
+        _ name: Token
+    ) throws {
+        resolve(object)
     }
 
     func visitGroupExpression(
