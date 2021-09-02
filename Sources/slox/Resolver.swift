@@ -104,7 +104,8 @@ extension Resolver: StatementVisitor {
         scopes[scopes.count - 1]["this"] = true
 
         for case let .function(functionName, params, body) in methods {
-            resolveFunction(functionName, params, body, .method)
+            let type: FunctionType = functionName.lexeme == "init" ? .initializer : .method
+            resolveFunction(functionName, params, body, type)
         }
         endScope()
     }
@@ -149,6 +150,9 @@ extension Resolver: StatementVisitor {
     ) throws {
         if currentFunction == .none {
             Lox.error(token: keyword, message: "Can't return from top-level code.")
+        }
+        if value != .empty && currentFunction == .initializer {
+            Lox.error(token: keyword, message: "Can't return a value from an initializer.")
         }
         resolve(value)
     }
@@ -386,6 +390,7 @@ private extension Resolver {
     enum FunctionType {
         case none
         case function
+        case initializer
         case method
     }
 

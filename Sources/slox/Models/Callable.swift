@@ -35,6 +35,7 @@ struct Function: Callable {
     let body: [Statement]
     // this helps with nested closures / functions
     let closure: Environment
+    let isInitializer: Bool
 
     var arity: Int { params.count }
 
@@ -54,6 +55,9 @@ struct Function: Callable {
             // TODO: consider ignoring this value and always return .none
             return try interpreter.executeBlockStatement(body, env: environment)
         } catch let returnValue as Return {
+            if isInitializer {
+                return closure.get("this", distance: 0)!
+            }
             return returnValue.value
         }
     }
@@ -63,7 +67,8 @@ struct Function: Callable {
         environment.define("this", value: .instance(instance))
         return .callable(Function(
             name: name, params: params,
-            body: body, closure: environment
+            body: body, closure: environment,
+            isInitializer: isInitializer
         ))
     }
 }
