@@ -52,30 +52,26 @@ final class Environment {
 extension Environment {
 
     func get(
-        _ name: Token,
+        _ name: String,
         distance: Int
-    ) throws -> RuntimeValue {
-        try ancestor(at: distance, token: name).get(name)
+    ) -> RuntimeValue? {
+        ancestor(at: distance).values[name]
     }
 
     func assign(
         _ name: Token,
         at distance: Int,
         _ value: RuntimeValue
-    ) throws {
-        try ancestor(at: distance, token: name).values[name.lexeme] = value
+    ) {
+        ancestor(at: distance).values[name.lexeme] = value
     }
 
     private func ancestor(
-        at distance: Int,
-        token: Token
-    ) throws -> Environment {
+        at distance: Int
+    ) -> Environment {
         var environment: Environment = self
-        for d in 0..<distance {
-            guard let enclosing = environment.enclosing else {
-                throw RuntimeError(token: token, message: "No enclosing environment at \(d) distance.")
-            }
-            environment = enclosing
+        for _ in 0..<distance {
+            environment = environment.enclosing!
         }
         return environment
     }

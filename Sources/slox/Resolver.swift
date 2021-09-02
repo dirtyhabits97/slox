@@ -323,9 +323,12 @@ extension Resolver: ExpressionVisitor {
 private extension Resolver {
 
     func resolveLocal(_ expr: Expression, name: Token) {
-        for (idx, scope) in scopes.lazy.enumerated().reversed() where scope[name.lexeme] != nil {
-            interpreter.resolve(expr, depth: scope.count - 1 - idx)
-            return
+        for (i, scope) in zip(0 ... scopes.count, scopes).reversed() {
+            if scope[name.lexeme] != nil {
+                let numOfScopes = scopes.count - 1 - i
+                interpreter.resolve(expr, depth: numOfScopes)
+                return
+            }
         }
     }
 }

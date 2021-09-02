@@ -46,7 +46,7 @@ struct Function: Callable {
         interpreter: Interpreter,
         arguments: [RuntimeValue]
     ) throws -> RuntimeValue {
-        let environment = Environment(enclosing: interpreter.globals)
+        let environment = Environment(enclosing: environment)
         for (param, arg) in zip(params, arguments) {
             environment.define(param.lexeme, value: arg)
         }

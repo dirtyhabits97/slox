@@ -13,7 +13,7 @@ final class Instance: CustomStringConvertible {
     private var fields: [String: RuntimeValue] = [:]
 
     var description: String {
-        "\(klass) instance "
+        "\(klass) instance"
     }
 
     init(klass: Class) {
@@ -24,7 +24,7 @@ final class Instance: CustomStringConvertible {
         if let value = fields[name.lexeme] {
             return value
         }
-        if let method = klass.methods[name.lexeme] {
+        if let method = klass.findMethod(name.lexeme) {
             return method.bind(instance: self)
         }
         throw RuntimeError(token: name, message: "Undefined property '\(name.lexeme)'.")

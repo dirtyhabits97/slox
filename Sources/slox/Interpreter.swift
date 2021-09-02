@@ -372,7 +372,7 @@ private extension Interpreter {
     ) throws -> RuntimeValue {
         let value = try evaluate(value)
         if let distance = locals[expr] {
-            try environment.assign(name, at: distance, value)
+            environment.assign(name, at: distance, value)
         } else {
             try globals.assign(value, to: name)
         }

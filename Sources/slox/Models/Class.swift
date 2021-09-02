@@ -10,8 +10,18 @@ import Foundation
 struct Class: CustomStringConvertible {
 
     let name: String
-    let methods: [String: Function]
+    private let methods: [String: Function]
+
     var description: String { name }
+
+    init(name: String, methods: [String: Function]) {
+        self.name = name
+        self.methods = methods
+    }
+
+    func findMethod(_ name: String) -> Function? {
+        methods[name]
+    }
 }
 
 extension Class: Callable {
