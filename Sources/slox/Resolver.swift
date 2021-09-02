@@ -10,6 +10,7 @@ import Foundation
 final class Resolver {
 
     private let interpreter: Interpreter
+    private var currentClass = ClassType.none
     private var currentFunction = FunctionType.none
     // The scope is a stack
     private var scopes: [[String: Bool]] = []
@@ -91,6 +92,10 @@ extension Resolver: StatementVisitor {
         _ name: Token,
         _ methods: [Statement]
     ) throws {
+        let enclosingClass = currentClass
+        currentClass = .class
+        defer { currentClass = enclosingClass }
+
         declare(name)
         define(name)
 
@@ -226,6 +231,13 @@ private extension Resolver {
         _ keyword: Token,
         _ expr: Expression
     ) {
+        if currentClass == .none {
+            Lox.error(
+                token: keyword,
+                message: "Can't use 'this' outside of a class."
+            )
+            return
+        }
         resolveLocal(expr, name: keyword)
     }
 }
@@ -375,5 +387,10 @@ private extension Resolver {
         case none
         case function
         case method
+    }
+
+    enum ClassType {
+        case none
+        case `class`
     }
 }

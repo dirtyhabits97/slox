@@ -26,12 +26,23 @@ struct Class: CustomStringConvertible {
 
 extension Class: Callable {
 
-    var arity: Int { 0 }
+    var arity: Int {
+        if let initializer = findMethod("init") {
+            return initializer.arity
+        }
+        return 0
+    }
 
     func call(
         interpreter: Interpreter,
         arguments: [RuntimeValue]
     ) throws -> RuntimeValue {
-        .instance(Instance(klass: self))
+        let instance = Instance(klass: self)
+        if let initializer = findMethod("init") {
+            _ = initializer.bind(instance: instance)
+                .asCallable?
+                .call(interpreter: interpreter, arguments: arguments)
+        }
+        return instance
     }
 }
