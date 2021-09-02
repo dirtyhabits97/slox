@@ -549,8 +549,10 @@ extension Interpreter {
 private extension Interpreter {
 
     func lookUpVariable(_ name: Token, _ expr: Expression) throws -> RuntimeValue {
-        if let distance = locals[expr] { // the distance in the environment hierarchy
-            return try environment.get(name, distance: distance)
+        if let distance = locals[expr],
+           // the distance in the environment hierarchy
+           let value = environment.get(name.lexeme, distance: distance) {
+            return value
         }
         return try globals.get(name)
     }
