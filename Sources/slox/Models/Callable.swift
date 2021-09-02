@@ -34,7 +34,7 @@ struct Function: Callable {
     let params: [Token]
     let body: [Statement]
     // this helps with nested closures / functions
-    let environment: Environment
+    let closure: Environment
 
     var arity: Int { params.count }
 
@@ -46,7 +46,7 @@ struct Function: Callable {
         interpreter: Interpreter,
         arguments: [RuntimeValue]
     ) throws -> RuntimeValue {
-        let environment = Environment(enclosing: environment)
+        let environment = Environment(enclosing: closure)
         for (param, arg) in zip(params, arguments) {
             environment.define(param.lexeme, value: arg)
         }
@@ -59,11 +59,11 @@ struct Function: Callable {
     }
 
     func bind(instance: Instance) -> RuntimeValue {
-        let environment = Environment(enclosing: environment)
+        let environment = Environment(enclosing: closure)
         environment.define("this", value: .instance(instance))
         return .callable(Function(
             name: name, params: params,
-            body: body, environment: environment
+            body: body, closure: environment
         ))
     }
 }

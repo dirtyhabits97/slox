@@ -39,10 +39,10 @@ extension Class: Callable {
     ) throws -> RuntimeValue {
         let instance = Instance(klass: self)
         if let initializer = findMethod("init") {
-            _ = initializer.bind(instance: instance)
+            _ = try initializer.bind(instance: instance)
                 .asCallable?
                 .call(interpreter: interpreter, arguments: arguments)
         }
-        return instance
+        return .instance(instance)
     }
 }

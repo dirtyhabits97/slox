@@ -85,7 +85,7 @@ extension Interpreter: StatementVisitor {
         for case let .function(functionName, params, body) in methods {
             let function = Function(
                 name: functionName, params: params,
-                body: body, environment: environment
+                body: body, closure: environment
             )
             methodForName[functionName.lexeme] = function
         }
@@ -110,7 +110,7 @@ extension Interpreter: StatementVisitor {
             name: name,
             params: params,
             body: body,
-            environment: environment
+            closure: environment
         )
         environment.define(name.lexeme, value: .callable(function))
         return .none
