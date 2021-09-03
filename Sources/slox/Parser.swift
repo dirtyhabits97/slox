@@ -396,6 +396,13 @@ private extension Parser {
             return .literal(previous().literal ?? .none)
         }
 
+        if match(.SUPER) {
+            let keyword = previous()
+            try consume(.DOT, message: "Expect '.' after 'super'.")
+            let method = try consume(.IDENTIFIER, message: "Expect superclass method name.")
+            return .super(keyword: keyword, method: method)
+        }
+
         if match(.THIS) {
             return .this(keyword: previous())
         }

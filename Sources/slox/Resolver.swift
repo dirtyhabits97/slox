@@ -109,6 +109,12 @@ extension Resolver: StatementVisitor {
         }
         resolve(superclass)
 
+        // declare "super"
+        if case .variable = superclass {
+            beginScope()
+            scopes[scopes.count - 1]["super"] = true
+        }
+
         // declare "this"
         beginScope()
         scopes[scopes.count - 1]["this"] = true
@@ -118,6 +124,7 @@ extension Resolver: StatementVisitor {
             resolveFunction(functionName, params, body, type)
         }
         endScope()
+        if case .variable = superclass { endScope() }
     }
 
     func visitExpressionStatement(
@@ -210,6 +217,8 @@ private extension Resolver {
                 try visitLogicalExpression(lhs, op, rhs)
             case .set(object: let obj, name: let name, value: let value):
                 try visitSetExpression(obj, name, value)
+            case .super(keyword: let keyword, method: let method):
+                resolveSuperExpression(keyword, method, expression)
             case .this(keyword: let keyword):
                 resolveThisExpression(keyword, expression)
             case .unary(operator: let op, rhs: let rhs):
@@ -231,14 +240,12 @@ private extension Resolver {
         resolveLocal(expr, name: name)
     }
 
-    func resolveVariableExpression(
-        _ name: Token,
+    func resolveSuperExpression(
+        _ keyword: Token,
+        _ method: Token,
         _ expr: Expression
     ) {
-        if !scopes.isEmpty && scopes.last?[name.lexeme] == false {
-            Lox.error(token: name, message: "Can't read local variable in its own initiazlier.")
-        }
-        resolveLocal(expr, name: name)
+        resolveLocal(expr, name: keyword)
     }
 
     func resolveThisExpression(
@@ -253,6 +260,16 @@ private extension Resolver {
             return
         }
         resolveLocal(expr, name: keyword)
+    }
+
+    func resolveVariableExpression(
+        _ name: Token,
+        _ expr: Expression
+    ) {
+        if !scopes.isEmpty && scopes.last?[name.lexeme] == false {
+            Lox.error(token: name, message: "Can't read local variable in its own initiazlier.")
+        }
+        resolveLocal(expr, name: name)
     }
 }
 
@@ -322,6 +339,13 @@ extension Resolver: ExpressionVisitor {
     ) throws -> () {
         resolve(value)
         resolve(object)
+    }
+
+    func visitSuperExpression(
+        _ keyword: Token,
+        _ method: Token
+    ) throws -> () {
+        fatalError("Not implemented. Refer to `resolveSuperExpression(_:_:_:)`.")
     }
 
     func visitThisExpression(

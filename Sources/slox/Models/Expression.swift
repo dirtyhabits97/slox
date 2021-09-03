@@ -18,6 +18,7 @@ enum Expression: Hashable {
     case literal(Literal)
     indirect case logical(lhs: Expression, operator: Token, rhs: Expression)
     indirect case set(object: Expression, name: Token, value: Expression)
+    case `super`(keyword: Token, method: Token)
     case this(keyword: Token)
     indirect case unary(operator: Token, rhs: Expression)
     case variable(Token)
@@ -36,6 +37,7 @@ protocol ExpressionVisitor {
     func visitLiteralExpression(_ literal: Literal) throws -> ReturnValue
     func visitLogicalExpression(_ lhs: Expression, _ operation: Token, _ rhs: Expression) throws -> ReturnValue
     func visitSetExpression(_ object: Expression, _ name: Token, _ value: Expression) throws -> ReturnValue
+    func visitSuperExpression(_ keyword: Token, _ method: Token) throws -> ReturnValue
     func visitThisExpression(_ keyword: Token) throws -> ReturnValue
     func visitUnaryExpression(_ operation: Token, _ rhs: Expression) throws -> ReturnValue
     func visitVariableExpression(_ name: Token) throws -> ReturnValue

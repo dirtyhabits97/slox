@@ -84,6 +84,11 @@ extension Interpreter: StatementVisitor {
 
         environment.define(name.lexeme, value: .none)
 
+        if let `super` = superclass {
+            environment = Environment(enclosing: environment)
+            environment.define("super", value: .class(`super`))
+        }
+
         var methodForName: [String: Function] = [:]
         for case let .function(functionName, params, body) in methods {
             let function = Function(
@@ -99,6 +104,11 @@ extension Interpreter: StatementVisitor {
             superclass: superclass,
             methods: methodForName
         )
+
+        if superclass != nil {
+            environment = environment.enclosing!
+        }
+
         try environment.assign(.class(klass), to: name)
         return .none
     }
@@ -217,6 +227,8 @@ private extension Interpreter {
             return try visitLogicalExpression(lhs, op, rhs)
         case .set(object: let obj, name: let name, value: let value):
             return try visitSetExpression(obj, name, value)
+        case .super(keyword: let keyword, method: let method):
+            return try evaluateSuperExpression(keyword, method, expression)
         case .this(keyword: let keyword):
             return try evaluateThisExpression(keyword, expression)
         case .unary(operator: let op, rhs: let rhs):
@@ -337,6 +349,13 @@ extension Interpreter: ExpressionVisitor {
         return value
     }
 
+    func visitSuperExpression(
+        _ keyword: Token,
+        _ method: Token
+    ) throws -> RuntimeValue {
+        fatalError("Not implemented. Refer to `evaluateSuperExpression(_:_:_:)`.")
+    }
+
     func visitThisExpression(
         _ keyword: Token
     ) throws -> RuntimeValue {
@@ -454,6 +473,28 @@ private extension Interpreter {
         default:
             return .none
         }
+    }
+
+    func evaluateSuperExpression(
+        _ keyword: Token,
+        _ method: Token,
+        _ expr: Expression
+    ) throws -> RuntimeValue {
+        guard
+            let distance = locals[expr],
+            case .class(let superklass) = environment.get("super", distance: distance),
+            case .instance(let instance) = environment.get("this", distance: distance - 1)
+        else {
+            fatalError("Internal error evaluating the superclass expression")
+        }
+
+        guard let method = superklass.findMethod(method.lexeme) else {
+            throw RuntimeError(
+                token: method,
+                message: "Undefined property \(method.lexeme)."
+            )
+        }
+        return method.bind(instance: instance)
     }
 
     func evaluateThisExpression(

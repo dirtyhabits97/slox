@@ -10,7 +10,7 @@ import Foundation
 final class Environment {
 
     private var values: [String: RuntimeValue] = [:]
-    private let enclosing: Environment?
+    let enclosing: Environment?
 
     init(enclosing: Environment? = nil) {
         self.enclosing = enclosing

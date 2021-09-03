@@ -182,6 +182,8 @@ private extension ASTPrinter {
                 return try visitLogicalExpression(lhs, op, rhs)
             case .set(object: let obj, name: let name, value: let value):
                 return try visitSetExpression(obj, name, value)
+            case .super(keyword: let keyword, method: let method):
+                return try visitSuperExpression(keyword, method)
             case .this(keyword: let keyword):
                 return try visitThisExpression(keyword)
             case .unary(operator: let op, rhs: let rhs):
@@ -261,6 +263,13 @@ extension ASTPrinter: ExpressionVisitor {
         _ value: Expression
     ) throws -> String {
         parenthesize("set", elements: object, ".", name, "=", value)
+    }
+
+    func visitSuperExpression(
+        _ keyword: Token,
+        _ method: Token
+    ) throws -> String {
+        parenthesize("super", elements: keyword, ".", method)
     }
 
     func visitThisExpression(
