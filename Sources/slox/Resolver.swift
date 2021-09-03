@@ -101,13 +101,13 @@ extension Resolver: StatementVisitor {
         define(name)
 
         // validate superclass
-        if
-            case .variable(let varName) = superclass,
-            name.lexeme == varName.lexeme
-        {
+        if case .variable(let varName) = superclass,
+           name.lexeme == varName.lexeme {
             Lox.error(token: varName, message: "A class can't inherit from itself.")
+        } else if case .variable = superclass {
+            currentClass = .subclass
+            resolve(superclass)
         }
-        resolve(superclass)
 
         // declare "super"
         if case .variable = superclass {
@@ -245,6 +245,17 @@ private extension Resolver {
         _ method: Token,
         _ expr: Expression
     ) {
+        if currentClass == .none {
+            Lox.error(
+                token: keyword,
+                message: "Can't use 'super' outside of a class."
+            )
+        } else if currentClass != .subclass {
+            Lox.error(
+                token: keyword,
+                message: "Can't use 'super' in a class with no superclass"
+            )
+        }
         resolveLocal(expr, name: keyword)
     }
 
@@ -431,5 +442,6 @@ private extension Resolver {
     enum ClassType {
         case none
         case `class`
+        case subclass
     }
 }
