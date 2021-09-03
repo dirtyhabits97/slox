@@ -36,8 +36,8 @@ private extension Resolver {
             switch statement {
             case .block(let statements):
                 try visitBlockStatement(statements)
-            case .class(name: let name, methods: let methods):
-                try visitClassStatement(name, methods)
+            case .class(let name, let superclass, let methods):
+                try visitClassStatement(name, superclass, methods)
             case .expression(let expr):
                 try visitExpressionStatement(expr)
             case .function(name: let name, params: let params, body: let body):
@@ -90,6 +90,7 @@ extension Resolver: StatementVisitor {
 
     func visitClassStatement(
         _ name: Token,
+        _ superclass: Expression,
         _ methods: [Statement]
     ) throws {
         let enclosingClass = currentClass
@@ -98,6 +99,15 @@ extension Resolver: StatementVisitor {
 
         declare(name)
         define(name)
+
+        // validate superclass
+        if
+            case .variable(let varName) = superclass,
+            name.lexeme == varName.lexeme
+        {
+            Lox.error(token: varName, message: "A class can't inherit from itself.")
+        }
+        resolve(superclass)
 
         // declare "this"
         beginScope()

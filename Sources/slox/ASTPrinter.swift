@@ -40,8 +40,8 @@ private extension ASTPrinter {
             switch statement {
             case .block(let statements):
                 return try visitBlockStatement(statements)
-            case .class(name: let name, methods: let methods):
-                return try visitClassStatement(name, methods)
+            case .class(let name, let superclass, let methods):
+                return try visitClassStatement(name, superclass, methods)
             case .expression(let expr):
                 return try visitExpressionStatement(expr)
             case .function(name: let name, params: let params, body: let body):
@@ -82,9 +82,10 @@ extension ASTPrinter: StatementVisitor {
 
     func visitClassStatement(
         _ name: Token,
+        _ superclass: Expression,
         _ methods: [Statement]
     ) throws -> String {
-        parenthesize("class", elements: name, methods)
+        parenthesize("class", elements: name, "<", superclass, methods)
     }
 
     func visitExpressionStatement(

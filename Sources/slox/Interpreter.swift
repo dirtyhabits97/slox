@@ -45,8 +45,8 @@ internal extension Interpreter {
         switch statement {
         case .block(let stmts):
             return try visitBlockStatement(stmts)
-        case .class(name: let name, methods: let methods):
-            return try visitClassStatement(name, methods)
+        case .class(let name, let superclass, let methods):
+            return try visitClassStatement(name, superclass, methods)
         case .expression(let expr):
             return try visitExpressionStatement(expr)
         case .function(name: let name, params: let params, body: let body):
@@ -77,8 +77,11 @@ extension Interpreter: StatementVisitor {
 
     func visitClassStatement(
         _ name: Token,
+        _ superclass: Expression,
         _ methods: [Statement]
     ) throws -> RuntimeValue {
+        let superclass = try evaluate(superclass).superclass(token: name)
+
         environment.define(name.lexeme, value: .none)
 
         var methodForName: [String: Function] = [:]
@@ -91,7 +94,11 @@ extension Interpreter: StatementVisitor {
             methodForName[functionName.lexeme] = function
         }
 
-        let klass = Class(name: name.lexeme, methods: methodForName)
+        let klass = Class(
+            name: name.lexeme,
+            superclass: superclass,
+            methods: methodForName
+        )
         try environment.assign(.class(klass), to: name)
         return .none
     }
@@ -557,5 +564,21 @@ private extension Interpreter {
             return value
         }
         return try globals.get(name)
+    }
+}
+
+// MARK: - Superclass
+
+private extension RuntimeValue {
+
+    func superclass(token: Token) throws -> Class? {
+        switch self {
+        case .class(let klass):
+            return klass
+        case .none:
+            return nil
+        default:
+            throw RuntimeError(token: token, message: "Superclass must be a class.")
+        }
     }
 }

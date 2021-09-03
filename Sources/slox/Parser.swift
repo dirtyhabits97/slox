@@ -216,7 +216,16 @@ private extension Parser {
     }
 
     func classDeclaration() throws -> Statement {
+        // handle name and superclass
         let name = try consume(.IDENTIFIER, message: "Expect class name.")
+        let superclass: Expression
+        if match(.LESS) {
+            try consume(.IDENTIFIER, message: "Expect superclass name.")
+            superclass = .variable(previous())
+        } else {
+            superclass = .empty
+        }
+
         try consume(.LEFT_BRACE, message: "Expect '{' before class body.")
 
         var methods: [Statement] = []
@@ -225,7 +234,7 @@ private extension Parser {
         }
 
         try consume(.RIGHT_BRACE, message: "Expect '}' after class body.")
-        return .class(name: name, methods: methods)
+        return .class(name: name, superclass: superclass, methods: methods)
     }
 }
 
