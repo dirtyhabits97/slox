@@ -26,7 +26,10 @@ final class Class: CustomStringConvertible {
     }
 
     func findMethod(_ name: String) -> Function? {
-        methods[name]
+        if let method = methods[name] {
+            return method
+        }
+        return superclass?.findMethod(name)
     }
 }
 
