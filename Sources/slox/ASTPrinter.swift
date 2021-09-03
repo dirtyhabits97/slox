@@ -85,7 +85,10 @@ extension ASTPrinter: StatementVisitor {
         _ superclass: Expression,
         _ methods: [Statement]
     ) throws -> String {
-        parenthesize("class", elements: name, "<", superclass, methods)
+        if superclass == .empty {
+            return parenthesize("class", elements: name, methods)
+        }
+        return parenthesize("class", elements: name, "<", superclass, methods)
     }
 
     func visitExpressionStatement(
