@@ -15,15 +15,29 @@ struct VM {
     // instruction pointer
     var ip: UnsafeMutablePointer<UInt8>?
 
-    var stack = Array(repeating: 0, count: STACK_MAX)
-    var stackTop: UnsafeMutablePointer<Value>?
+    // Naive approach for now
+    var stack = [Value?](repeating: nil, count: STACK_MAX)
+    var stackTop = 0
 }
 
-// TODO: make this private
-internal var vm = VM()
+private var vm = VM()
+
+private func resetStack() {
+    vm.stackTop = 0
+}
+
+private func push(_ value: Value) {
+    vm.stack[vm.stackTop] = value
+    vm.stackTop += 1
+}
+
+private func pop() -> Value {
+    vm.stackTop -= 1
+    return vm.stack[vm.stackTop]!
+}
 
 func initVM() {
-
+    resetStack()
 }
 
 func freeVM() {
@@ -44,6 +58,14 @@ func run() -> InterpretResult {
     while true {
 
 #if DEBUG
+        print("          ", terminator: "")
+        for slot in 0..<vm.stackTop {
+            print("[ ", terminator: "")
+            printValue(vm.stack[slot]!)
+            print(" ]", terminator: "")
+        }
+        print("")
+
         disassembleInstruction(
             &vm.chunk!.pointee,
             offset: vm.ip! - vm.chunk!.pointee.code!
@@ -54,10 +76,10 @@ func run() -> InterpretResult {
         let opCode = OpCode(rawValue: instruction)
         switch opCode {
         case .OP_CONSTANT:
-            let value = READ_CONSTANT()
-            printValue(value)
-            print("")
+            push(READ_CONSTANT())
         case .OP_RETURN:
+            printValue(pop())
+            print("")
             return .INTERPRET_OK
         default:
             print("Unknown \(instruction)")
