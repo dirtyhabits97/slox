@@ -7,6 +7,8 @@
 
 import Foundation
 
+initVM()
+
 var chunk = Chunk()
 
 let constant = addConstant(&chunk, value: 1.2)
@@ -16,4 +18,6 @@ writeChunk(&chunk, byte: UInt8(constant), line: 123)
 writeChunk(&chunk, byte: OpCode.OP_RETURN.rawValue, line: 123)
 
 disassembleChunk(&chunk, name: "test chunk")
+interpret(&chunk)
+freeVM()
 freeChunk(&chunk)

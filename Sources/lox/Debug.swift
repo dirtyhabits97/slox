@@ -16,6 +16,7 @@ func disassembleChunk(_ chunk: inout Chunk, name: String) {
     }
 }
 
+@discardableResult
 func disassembleInstruction(_ chunk: inout Chunk, offset: Int) -> Int {
     print(String(format: "%04d ", offset), terminator: "")
     if offset > 0 && chunk.lines?[offset] == chunk.lines?[offset - 1] {
