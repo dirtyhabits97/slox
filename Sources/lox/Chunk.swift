@@ -72,5 +72,7 @@ func addConstant(_ chunk: inout Chunk, value: Value) -> Int {
 enum OpCode: UInt8 {
 
     case OP_CONSTANT
+    case OP_ADD, OP_SUBSTRACT, OP_MULTIPLY, OP_DIVIDE
+    case OP_NEGATE
     case OP_RETURN
 }

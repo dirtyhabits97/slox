@@ -54,6 +54,11 @@ func run() -> InterpretResult {
     func READ_CONSTANT() -> Value {
         vm.chunk!.pointee.constants.values![Int(READ_BYTE())]
     }
+    func BINARY_OP(_ op: (Value, Value) -> Value) {
+        let rhs = pop()
+        let lhs = pop()
+        push(op(lhs, rhs))
+    }
 
     while true {
 
@@ -77,11 +82,23 @@ func run() -> InterpretResult {
         switch opCode {
         case .OP_CONSTANT:
             push(READ_CONSTANT())
+        case .OP_NEGATE:
+            push(-pop())
+
+        case .OP_ADD:
+            BINARY_OP(+)
+        case .OP_SUBSTRACT:
+            BINARY_OP(-)
+        case .OP_MULTIPLY:
+            BINARY_OP(*)
+        case .OP_DIVIDE:
+            BINARY_OP(/)
+
         case .OP_RETURN:
             printValue(pop())
             print("")
             return .INTERPRET_OK
-        default:
+        case .none:
             print("Unknown \(instruction)")
             return .INTERPRET_RUNTIME_ERROR
         }
